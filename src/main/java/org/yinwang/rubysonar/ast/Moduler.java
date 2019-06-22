@@ -6,7 +6,7 @@ import org.yinwang.rubysonar.types.ModuleType;
 import org.yinwang.rubysonar.types.Type;
 
 
-public class Module extends Node {
+public class Moduler extends Node {
 
     public Node locator;
     public Name name;
@@ -14,7 +14,7 @@ public class Module extends Node {
     public Str docstring;
 
 
-    public Module(Node locator, Block body, Str docstring, String file, int start, int end) {
+    public Moduler(Node locator, Block body, Str docstring, String file, int start, int end) {
         super(file, start, end);
         this.locator = locator;
         this.body = body;
@@ -40,7 +40,7 @@ public class Module extends Node {
             Analyzer.self.setStaticContext(saved);
             return Type.NIL;
         } else {
-            ModuleType mt = s.lookupOrCreateModule(locator, file);
+            ModuleType mt = s.lookupOrCreateModuler(locator, file);
             mt.table.insert(Constants.SELFNAME, name, mt, Binding.Kind.SCOPE);
             transformExpr(body, mt.table);
             return mt;

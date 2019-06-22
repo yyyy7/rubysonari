@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yinwang.rubysonar.ast.*;
 import org.yinwang.rubysonar.ast.Class;
+import org.yinwang.rubysonar.ast.Moduler;
 import org.yinwang.rubysonar.ast.Void;
 
 import java.io.File;
@@ -102,7 +103,7 @@ public class Parser {
                 }
             }
             Str docstring = (Str) convert(map.get("doc"));
-            return new Module(name, body, docstring, file, start, end);
+            return new Moduler(name, body, docstring, file, start, end);
         }
 
         if (type.equals("block")) {

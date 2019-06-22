@@ -2,7 +2,7 @@ package org.yinwang.rubysonar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.yinwang.rubysonar.ast.Module;
+import org.yinwang.rubysonar.ast.Moduler;
 import org.yinwang.rubysonar.ast.Node;
 
 import java.io.*;
@@ -86,7 +86,7 @@ public class AstCache {
         }
 
         // Might be cached on disk but not in memory.
-        Node node = getSerializedModule(path);
+        Node node = getSerializedModuler(path);
         if (node != null) {
             LOG.log(Level.FINE, "reusing " + path);
             cache.put(path, node);
@@ -152,7 +152,7 @@ public class AstCache {
 
     // package-private for testing
     @Nullable
-    Module getSerializedModule(String sourcePath) {
+    Moduler getSerializedModuler(String sourcePath) {
         if (!new File(sourcePath).canRead()) {
             return null;
         }
@@ -166,14 +166,14 @@ public class AstCache {
 
     // package-private for testing
     @Nullable
-    Module deserialize(@NotNull String sourcePath) {
+    Moduler deserialize(@NotNull String sourcePath) {
         String cachePath = getCachePath(sourcePath);
         FileInputStream fis = null;
         ObjectInputStream ois = null;
         try {
             fis = new FileInputStream(cachePath);
             ois = new ObjectInputStream(fis);
-            return (Module) ois.readObject();
+            return (Moduler) ois.readObject();
         } catch (Exception e) {
             return null;
         } finally {

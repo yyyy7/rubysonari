@@ -320,7 +320,7 @@ public class State {
     }
 
 
-    public ModuleType lookupOrCreateModule(Node locator, String file) {
+    public ModuleType lookupOrCreateModuler(Node locator, String file) {
         Type existing = Node.transformExpr(locator, this);
         if (existing instanceof ModuleType) {
 
@@ -338,7 +338,7 @@ public class State {
                 return mt;
             }
         } else if (locator instanceof Attribute) {
-            ModuleType mod = lookupOrCreateModule(((Attribute) locator).target, file);
+            ModuleType mod = lookupOrCreateModuler(((Attribute) locator).target, file);
             ModuleType mod2 = new ModuleType(((Attribute) locator).attr.id, file, mod.table);
             mod.table.insert(((Attribute) locator).attr.id, ((Attribute) locator).attr, mod2, Binding.Kind.MODULE);
             return mod2;
