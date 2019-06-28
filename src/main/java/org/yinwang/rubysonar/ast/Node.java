@@ -18,6 +18,8 @@ public abstract class Node implements java.io.Serializable {
     public String file;
     public int start = -1;
     public int end = -1;
+    public int line = -1;
+    public int col = -1;
     public String name;
     public String path;
     public Node parent = null;
@@ -27,10 +29,12 @@ public abstract class Node implements java.io.Serializable {
     }
 
 
-    public Node(String file, int start, int end) {
+    public Node(String file, int start, int end, int line, int col) {
         this.file = file;
         this.start = start;
         this.end = end;
+        this.line = line;
+        this.col = col;
     }
 
 
@@ -137,7 +141,7 @@ public abstract class Node implements java.io.Serializable {
 
     @Override
     public int hashCode() {
-        return (file + ":" + start + ":" + end).hashCode();
+        return (file + ":" + start + ":" +end).hashCode();
     }
 
 

@@ -11,8 +11,8 @@ public class UnaryOp extends Node {
     public Node operand;
 
 
-    public UnaryOp(Op op, Node operand, String file, int start, int end) {
-        super(file, start, end);
+    public UnaryOp(Op op, Node operand, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
         this.op = op;
         this.operand = operand;
         addChildren(operand);

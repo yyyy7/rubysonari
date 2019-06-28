@@ -10,8 +10,8 @@ public class StrEmbed extends Node {
     public Node value;
 
 
-    public StrEmbed(@NotNull Node value, String file, int start, int end) {
-        super(file, start, end);
+    public StrEmbed(@NotNull Node value, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
         this.value = value;
     }
 

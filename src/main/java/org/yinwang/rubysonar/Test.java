@@ -63,6 +63,8 @@ public class Test {
                 ref.put("file", file);
                 ref.put("start", e.getKey().start);
                 ref.put("end", e.getKey().end);
+                ref.put("line", e.getKey().line);
+                ref.put("col", e.getKey().col);
 
                 List<Map<String, Object>> dests = new ArrayList<>();
                 for (Binding b : e.getValue()) {
@@ -74,6 +76,8 @@ public class Test {
                         dest.put("file", destFile);
                         dest.put("start", b.start);
                         dest.put("end", b.end);
+                        dest.put("line", b.node.line);
+                        dest.put("col", b.node.col);
                         dests.add(dest);
                     }
                 }
@@ -116,7 +120,7 @@ public class Test {
                 int end = (int) Math.floor((double) d.get("end"));
 
                 if (actualDests == null ||
-                        !checkBindingExist(actualDests, file, start, end))
+                        !checkBindingExist(actualDests, file, start, end, 1, 1))
                 {
                     failedDests.add(d);
                 }
@@ -168,7 +172,7 @@ public class Test {
     }
 
 
-    boolean checkBindingExist(@NotNull List<Binding> bs, String file, int start, int end) {
+    boolean checkBindingExist(@NotNull List<Binding> bs, String file, int start, int end, int line, int col) {
         Iterator<Binding> iter = bs.iterator();
         while (iter.hasNext()) {
             Binding b = iter.next();
@@ -189,7 +193,7 @@ public class Test {
         String file = _.projAbsPath((String) m.get("file"));
         int start = (int) Math.floor((double) m.get("start"));
         int end = (int) Math.floor((double) m.get("end"));
-        return new Dummy(file, start, end);
+        return new Dummy(file, start, end, 1, 1);
     }
 
 

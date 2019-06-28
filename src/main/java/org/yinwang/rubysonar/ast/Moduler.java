@@ -14,8 +14,8 @@ public class Moduler extends Node {
     public Str docstring;
 
 
-    public Moduler(Node locator, Block body, Str docstring, String file, int start, int end) {
-        super(file, start, end);
+    public Moduler(Node locator, Block body, Str docstring, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
         this.locator = locator;
         this.body = body;
         this.docstring = docstring;

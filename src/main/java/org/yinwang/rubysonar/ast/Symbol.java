@@ -12,8 +12,8 @@ public class Symbol extends Node {
     public final String id;  // identifier
 
 
-    public Symbol(@NotNull String id, String file, int start, int end) {
-        super(file, start, end);
+    public Symbol(@NotNull String id, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
         this.id = id;
     }
 

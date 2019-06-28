@@ -20,9 +20,9 @@ public class Class extends Node {
 
 
     public Class(@Nullable Node locator, Node base, Node body, Str docstring, boolean isStatic, String file, int start,
-                 int end)
+                 int end, int line, int col)
     {
-        super(file, start, end);
+        super(file, start, end, line, col);
 
         // set name
         if (locator instanceof Attribute) {
@@ -30,7 +30,7 @@ public class Class extends Node {
         } else if (locator instanceof Name) {
             this.name = (Name) locator;
         } else {
-            this.name = new Name(genClassName(), file, start, start + 1);
+            this.name = new Name(genClassName(), file, start, start + 1, line, col);
             addChildren(this.name);
         }
 

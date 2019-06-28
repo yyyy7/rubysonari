@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import org.yinwang.rubysonar._;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,11 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+    _.msg(params.toString());
     workspaceRoot = params.getRootUri();
+    if (workspaceRoot == null || workspaceRoot == "") {
+      throw new RuntimeException("got " + workspaceRoot);
+    } 
 
     ServerCapabilities capabilities = new ServerCapabilities();
     capabilities.setDefinitionProvider(true);
@@ -45,45 +50,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     this.client = client;
   }
 
-  private FullTextDocumentService fullTextDocumentService = new FullTextDocumentService() {
-
-    @Override
-    public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
-      String uri = position.getTextDocument().getUri();
-      int line = position.getPosition().getLine();
-      int offset = position.getPosition().getCharacter();
-      Range r = new Range(new Position(line+1, offset), new Position(line+1, offset+1));
-      return CompletableFuture.completedFuture(Arrays.asList(new Location(uri, r)));
-    }
-
-    @Override
-    public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
-      MarkedString markedString = new MarkedString("ruby", position.toString());
-      Hover h = new Hover(Arrays.asList(Either.forRight(markedString)));
-
-      return CompletableFuture.completedFuture(h);
-    }
-
-    @Override
-    public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem item) {
-        if (item.getData().equals(1.0)) {
-            item.setDetail("TypeScript details");
-            item.setDocumentation("TypeScript documentation");
-        } else if (item.getData().equals(2.0)) {
-            item.setDetail("JavaScript details");
-            item.setDocumentation("JavaScript documentation");
-        }
-        return CompletableFuture.completedFuture(item);
-    }
-
-    @Override
-    public void didChange(DidChangeTextDocumentParams params) {
-        super.didChange(params);
-
-        TextDocumentItem document = this.documents.get(params.getTextDocument().getUri());
-        validateDocument(document);
-    }
-};
+  private FullTextDocumentService fullTextDocumentService = new FullTextDocumentService(workspaceRoot);
 
   @Override
   public TextDocumentService getTextDocumentService() {

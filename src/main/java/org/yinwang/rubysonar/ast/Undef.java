@@ -12,8 +12,8 @@ public class Undef extends Node {
     public List<Node> targets;
 
 
-    public Undef(List<Node> elts, String file, int start, int end) {
-        super(file, start, end);
+    public Undef(List<Node> elts, String file, int start, int end, int line, int col) {
+        super(file, start, end, line, col);
         this.targets = elts;
         addChildren(elts);
     }

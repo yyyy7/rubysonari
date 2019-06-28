@@ -12,8 +12,8 @@ public class RbInt extends Node {
     public BigInteger value;
 
 
-    public RbInt(String s, String file, int start, int end) {
-        super(file, start, end);
+    public RbInt(String s, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
 
         s = s.toLowerCase();
         s = s.replaceAll("_", "");

@@ -10,8 +10,8 @@ public class RbFloat extends Node {
     public double value;
 
 
-    public RbFloat(String s, String file, int start, int end) {
-        super(file, start, end);
+    public RbFloat(String s, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
         s = s.replaceAll("_", "");
         this.value = Double.parseDouble(s);
     }

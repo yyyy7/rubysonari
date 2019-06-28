@@ -32,15 +32,15 @@ public class Function extends Node {
 
     public Function(Node locator, List<Node> args, Node body, List<Node> defaults,
                     Name vararg, Name kwarg, List<Node> afterRest, Name blockarg,
-                    Str docstring, String file, int start, int end)
+                    Str docstring, String file, int start, int end, int line, int col)
     {
-        super(file, start, end);
+        super(file, start,end, line, col);
         if (locator != null) {
             this.locator = locator;
         } else {
             isLamba = true;
             String fn = genLambdaName();
-            this.locator = new Name(fn, file, -1, -1);
+            this.locator = new Name(fn, file, -1, -1, -1, -1);
             addChildren(this.locator);
         }
 

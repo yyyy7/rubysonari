@@ -11,8 +11,8 @@ import org.yinwang.rubysonar.types.Type;
  */
 public class Dummy extends Node {
 
-    public Dummy(String file, int start, int end) {
-        super(file, start, end);
+    public Dummy(String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
     }
 
 

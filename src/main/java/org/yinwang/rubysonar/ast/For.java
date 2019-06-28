@@ -17,9 +17,9 @@ public class For extends Node {
 
 
     public For(Node target, Node iter, Block body, Block orelse,
-               String file, int start, int end)
+               String file, int start, int end, int line, int col)
     {
-        super(file, start, end);
+        super(file, start,end, line, col);
         this.target = target;
         this.iter = iter;
         this.body = body;

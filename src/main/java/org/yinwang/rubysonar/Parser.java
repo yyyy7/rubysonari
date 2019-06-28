@@ -83,9 +83,13 @@ public class Parser {
         String type = (String) map.get("type");
         Double startDouble = (Double) map.get("start");
         Double endDouble = (Double) map.get("end");
+        Double lineDouble = (Double) map.get("start_line");
+        Double colDouble = (Double) map.get("end_line");
 
         int start = startDouble == null ? 0 : startDouble.intValue();
         int end = endDouble == null ? 1 : endDouble.intValue();
+        int line = lineDouble == null ? 0 : lineDouble.intValue();
+        int col = colDouble == null ? 0 : colDouble.intValue()+1;
 
 
         if (type.equals("program")) {
@@ -103,12 +107,12 @@ public class Parser {
                 }
             }
             Str docstring = (Str) convert(map.get("doc"));
-            return new Moduler(name, body, docstring, file, start, end);
+            return new Moduler(name, body, docstring, file, start,end, line, col);
         }
 
         if (type.equals("block")) {
             List<Node> stmts = convertList(map.get("stmts"));
-            return new Block(stmts, file, start, end);
+            return new Block(stmts, file, start,end, line, col);
         }
 
         if (type.equals("def") || type.equals("lambda")) {
@@ -125,7 +129,7 @@ public class Parser {
             Name blockarg = (Name) convert(argsMap.get("blockarg"));
             Str docstring = (Str) convert(map.get("doc"));
             return new Function(binder, positional, body, defaults, vararg, kwarg, afterRest, blockarg,
-                    docstring, file, start, end);
+                    docstring, file, start,end, line, col);
         }
 
         if (type.equals("call")) {
@@ -145,7 +149,9 @@ public class Parser {
                                     ((Assign) node).value,
                                     file,
                                     node.start,
-                                    node.end));
+                                    node.end, 
+                                    node.line,
+                                    node.col ));
                         } else {
                             pos.add(node);
                         }
@@ -153,17 +159,17 @@ public class Parser {
                 }
                 stararg = convert(args.get("star"));
                 blockarg = convert(args.get("blockarg"));
-                return new Call(func, pos, kws, null, stararg, blockarg, file, start, end);
+                return new Call(func, pos, kws, null, stararg, blockarg, file, start,end, line, col);
             } else {
                 // call with no arguments
-                return new Call(func, null, null, null, stararg, blockarg, file, start, end);
+                return new Call(func, null, null, null, stararg, blockarg, file, start,end, line, col);
             }
         }
 
         if (type.equals("attribute")) {
             Node value = convert(map.get("value"));
             Name attr = (Name) convert(map.get("attr"));
-            return new Attribute(value, attr, file, start, end);
+            return new Attribute(value, attr, file, start,end, line, col);
         }
 
         if (type.equals("binary")) {
@@ -173,60 +179,60 @@ public class Parser {
 
             // desugar complex operators
             if (op == Op.NotEqual) {
-                Node eq = new BinOp(Op.Equal, left, right, file, start, end);
-                return new UnaryOp(Op.Not, eq, file, start, end);
+                Node eq = new BinOp(Op.Equal, left, right, file, start,end, line, col);
+                return new UnaryOp(Op.Not, eq, file, start,end, line, col);
             }
 
             if (op == Op.NotMatch) {
-                Node eq = new BinOp(Op.Match, left, right, file, start, end);
-                return new UnaryOp(Op.Not, eq, file, start, end);
+                Node eq = new BinOp(Op.Match, left, right, file, start,end, line, col);
+                return new UnaryOp(Op.Not, eq, file, start,end, line, col);
             }
 
             if (op == Op.LtE) {
-                Node lt = new BinOp(Op.Lt, left, right, file, start, end);
-                Node eq = new BinOp(Op.Eq, left, right, file, start, end);
-                return new BinOp(Op.Or, lt, eq, file, start, end);
+                Node lt = new BinOp(Op.Lt, left, right, file, start,end, line, col);
+                Node eq = new BinOp(Op.Eq, left, right, file, start,end, line, col);
+                return new BinOp(Op.Or, lt, eq, file, start,end, line, col);
             }
 
             if (op == Op.GtE) {
-                Node gt = new BinOp(Op.Gt, left, right, file, start, end);
-                Node eq = new BinOp(Op.Eq, left, right, file, start, end);
-                return new BinOp(Op.Or, gt, eq, file, start, end);
+                Node gt = new BinOp(Op.Gt, left, right, file, start,end, line, col);
+                Node eq = new BinOp(Op.Eq, left, right, file, start,end, line, col);
+                return new BinOp(Op.Or, gt, eq, file, start,end, line, col);
             }
 
             if (op == Op.NotIn) {
-                Node in = new BinOp(Op.In, left, right, file, start, end);
-                return new UnaryOp(Op.Not, in, file, start, end);
+                Node in = new BinOp(Op.In, left, right, file, start,end, line, col);
+                return new UnaryOp(Op.Not, in, file, start,end, line, col);
             }
 
             if (op == Op.NotEq) {
-                Node in = new BinOp(Op.Eq, left, right, file, start, end);
-                return new UnaryOp(Op.Not, in, file, start, end);
+                Node in = new BinOp(Op.Eq, left, right, file, start,end, line, col);
+                return new UnaryOp(Op.Not, in, file, start,end, line, col);
             }
 
-            return new BinOp(op, left, right, file, start, end);
+            return new BinOp(op, left, right, file, start,end, line, col);
 
         }
 
         if (type.equals("void")) {
-            return new Void(file, start, end);
+            return new Void(file, start,end, line, col);
         }
 
 
         if (type.equals("break")) {
-            return new Control("break", file, start, end);
+            return new Control("break", file, start,end, line, col);
         }
 
         if (type.equals("retry")) {
-            return new Control("retry", file, start, end);
+            return new Control("retry", file, start,end, line, col);
         }
 
         if (type.equals("redo")) {
-            return new Control("redo", file, start, end);
+            return new Control("redo", file, start,end, line, col);
         }
 
         if (type.equals("continue")) {
-            return new Control("continue", file, start, end);
+            return new Control("continue", file, start,end, line, col);
         }
 
         if (type.equals("class")) {
@@ -235,12 +241,12 @@ public class Parser {
             Node body = convert(map.get("body"));
             Str docstring = (Str) convert(map.get("doc"));
             boolean isStatic = (Boolean) map.get("static");
-            return new Class(locator, base, body, docstring, isStatic, file, start, end);
+            return new Class(locator, base, body, docstring, isStatic, file, start, end, line, col);
         }
 
         if (type.equals("undef")) {
             List<Node> targets = convertList(map.get("names"));
-            return new Undef(targets, file, start, end);
+            return new Undef(targets, file, start, end, line, col);
         }
 
         if (type.equals("hash")) {
@@ -258,7 +264,7 @@ public class Parser {
                     }
                 }
             }
-            return new Dict(keys, values, file, start, end);
+            return new Dict(keys, values, file, start, end, line, col);
         }
 
         if (type.equals("rescue")) {
@@ -266,27 +272,27 @@ public class Parser {
             Node binder = convert(map.get("binder"));
             Node handler = convert(map.get("handler"));
             Node orelse = convert(map.get("else"));
-            return new Handler(exceptions, binder, handler, orelse, file, start, end);
+            return new Handler(exceptions, binder, handler, orelse, file, start,end, line, col);
         }
 
         if (type.equals("for")) {
             Node target = convert(map.get("target"));
             Node iter = convert(map.get("iter"));
             Block body = (Block) convert(map.get("body"));
-            return new For(target, iter, body, null, file, start, end);
+            return new For(target, iter, body, null, file, start,end, line, col);
         }
 
         if (type.equals("if")) {
             Node test = convert(map.get("test"));
             Node body = convert(map.get("body"));
             Node orelse = convert(map.get("else"));
-            return new If(test, body, orelse, file, start, end);
+            return new If(test, body, orelse, file, start,end, line, col);
         }
 
         if (type.equals("keyword")) {
             String arg = (String) map.get("arg");
             Node value = convert(map.get("value"));
-            return new Keyword(arg, value, file, start, end);
+            return new Keyword(arg, value, file, start,end, line, col);
         }
 
         if (type.equals("array")) {
@@ -294,19 +300,19 @@ public class Parser {
             if (elts == null) {
                 elts = Collections.emptyList();
             }
-            return new Array(elts, file, start, end);
+            return new Array(elts, file, start,end, line, col);
         }
 
         if (type.equals("args")) {
             List<Node> elts = convertList(map.get("positional"));
             if (elts != null) {
-                return new Array(elts, file, start, end);
+                return new Array(elts, file, start,end, line, col);
             } else {
                 elts = convertList(map.get("star"));
                 if (elts != null) {
-                    return new Array(elts, file, start, end);
+                    return new Array(elts, file, start,end, line, col);
                 } else {
-                    return new Array(Collections.<Node>emptyList(), file, start, end);
+                    return new Array(Collections.<Node>emptyList(), file, start,end, line, col);
                 }
             }
         }
@@ -317,39 +323,39 @@ public class Parser {
             List<Node> elts = new ArrayList<>();
             elts.add(from);
             elts.add(to);
-            return new Array(elts, file, start, end);
+            return new Array(elts, file, start,end, line, col);
         }
 
         if (type.equals("star")) { // f(*[1, 2, 3, 4])
             Node value = convert(map.get("value"));
-            return new Starred(value, file, start, end);
+            return new Starred(value, file, start,end, line, col);
         }
 
         // another name for Name in Python3 func parameters?
         if (type.equals("arg")) {
             String id = (String) map.get("arg");
-            return new Name(id, file, start, end);
+            return new Name(id, file, start,end, line, col);
         }
 
         if (type.equals("return")) {
             Node value = convert(map.get("value"));
-            return new Return(value, file, start, end);
+            return new Return(value, file, start,end, line, col);
         }
 
         if (type.equals("string")) {
             String s = (String) map.get("id");
-            return new Str(s, file, start, end);
+            return new Str(s, file, start,end, line, col);
         }
 
         if (type.equals("string_embexpr")) {
             Node value = convert(map.get("value"));
-            return new StrEmbed(value, file, start, end);
+            return new StrEmbed(value, file, start,end, line, col);
         }
 
         if (type.equals("regexp")) {
             Node pattern = convert(map.get("pattern"));
             Node regexp_end = convert(map.get("regexp_end"));
-            return new Regexp(pattern, regexp_end, file, start, end);
+            return new Regexp(pattern, regexp_end, file, start,end, line, col);
         }
 
         // Ruby's subscript is Python's Slice with step size 1
@@ -361,21 +367,21 @@ public class Parser {
                 List<Node> s = convertList(sliceObj);
                 if (s.size() == 1) {
                     Node node = s.get(0);
-                    Index idx = new Index(node, file, node.start, node.end);
-                    return new Subscript(value, idx, file, start, end);
+                    Index idx = new Index(node, file, node.start, node.end, node.line, node.col );
+                    return new Subscript(value, idx, file, start,end, line, col);
                 } else if (s.size() == 2) {
-                    Slice slice = new Slice(s.get(0), null, s.get(1), file, s.get(0).start, s.get(1).end);
-                    return new Subscript(value, slice, file, start, end);
+                    Slice slice = new Slice(s.get(0), null, s.get(1), file, s.get(0).start, s.get(1).end, s.get(0).line, s.get(0).col);
+                    return new Subscript(value, slice, file, start,end, line, col);
                 } else {
                     // failed to parse the subscript part
                     // cheat by returning the value
                     return value;
                 }
             } else if (sliceObj == null) {
-                return new Subscript(value, null, file, start, end);
+                return new Subscript(value, null, file, start,end, line, col);
             } else {
                 Node sliceNode = convert(sliceObj);
-                return new Subscript(value, sliceNode, file, start, end);
+                return new Subscript(value, sliceNode, file, start,end, line, col);
             }
         }
 
@@ -384,65 +390,65 @@ public class Parser {
             Node rescue = convert(map.get("rescue"));
             Node orelse = convert(map.get("else"));
             Node finalbody = convert(map.get("ensure"));
-            return new Try(rescue, body, orelse, finalbody, file, start, end);
+            return new Try(rescue, body, orelse, finalbody, file, start,end, line, col);
         }
 
         if (type.equals("unary")) {
             Op op = convertOp(map.get("op"));
             Node operand = convert(map.get("operand"));
-            return new UnaryOp(op, operand, file, start, end);
+            return new UnaryOp(op, operand, file, start,end, line, col);
         }
 
         if (type.equals("while")) {
             Node test = convert(map.get("test"));
             Node body = convert(map.get("body"));
-            return new While(test, body, null, file, start, end);
+            return new While(test, body, null, file, start,end, line, col);
         }
 
         if (type.equals("yield")) {
             Node value = convert(map.get("value"));
-            return new Yield(value, file, start, end);
+            return new Yield(value, file, start,end, line, col);
         }
 
         if (type.equals("assign")) {
             Node target = convert(map.get("target"));
             Node value = convert(map.get("value"));
-            return new Assign(target, value, file, start, end);
+            return new Assign(target, value, file, start,end, line, col);
         }
 
         if (type.equals("name")) {
             String id = (String) map.get("id");
-            return new Name(id, file, start, end);
+            return new Name(id, file, start,end, line, col);
         }
 
         if (type.equals("cvar")) {
             String id = (String) map.get("id");
-            return new Name(id, NameType.CLASS, file, start, end);
+            return new Name(id, NameType.CLASS, file, start,end, line, col);
         }
 
         if (type.equals("ivar")) {
             String id = (String) map.get("id");
-            return new Name(id, NameType.INSTANCE, file, start, end);
+            return new Name(id, NameType.INSTANCE, file, start,end, line, col);
         }
 
         if (type.equals("gvar")) {
             String id = (String) map.get("id");
-            return new Name(id, NameType.GLOBAL, file, start, end);
+            return new Name(id, NameType.GLOBAL, file, start,end, line, col);
         }
 
         if (type.equals("symbol")) {
             String id = (String) map.get("id");
-            return new Symbol(id, file, start, end);
+            return new Symbol(id, file, start,end, line, col);
         }
 
         if (type.equals("int")) {
             String n = (String) map.get("value");
-            return new RbInt(n, file, start, end);
+            return new RbInt(n, file, start,end, line, col);
         }
 
         if (type.equals("float")) {
             String n = (String) map.get("value");
-            return new RbFloat(n, file, start, end);
+            return new RbFloat(n, file, start,end, line, col);
         }
 
         _.die("[please report parser bug]: unexpected ast node: " + type);

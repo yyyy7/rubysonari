@@ -17,8 +17,8 @@ public class Handler extends Node {
     public Node orelse;
 
 
-    public Handler(List<Node> exceptions, Node binder, Node handler, Node orelse, String file, int start, int end) {
-        super(file, start, end);
+    public Handler(List<Node> exceptions, Node binder, Node handler, Node orelse, String file, int start, int end, int line, int col) {
+        super(file, start,end, line, col);
         this.exceptions = exceptions;
         this.binder = binder;
         this.handler = handler;
