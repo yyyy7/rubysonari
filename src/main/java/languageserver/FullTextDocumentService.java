@@ -35,6 +35,8 @@ class FullTextDocumentService implements TextDocumentService {
     //    this.workspaceRoot = wsroot;
     //}
 
+    public FullTextDocumentService() {}
+
     public FullTextDocumentService(String workspaceRoot) {
         _.msg("-------");
         _.msg(workspaceRoot);
@@ -180,6 +182,7 @@ class FullTextDocumentService implements TextDocumentService {
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
+       
         documents.put(params.getTextDocument().getUri(), params.getTextDocument());
     }
 

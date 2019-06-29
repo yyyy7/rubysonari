@@ -7,27 +7,41 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import org.yinwang.rubysonar.Analyzer;
+import org.yinwang.rubysonar.Binding;
 import org.yinwang.rubysonar._;
+import org.yinwang.rubysonar.ast.Node;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
 class RubyLanguageServer implements LanguageServer, LanguageClientAware {
   private LanguageClient client = null;
-
-  @SuppressWarnings("unused")
+  public static Map<String, List<Map<String, Object>>> positions;
+  // @SuppressWarnings("unused")
   private String workspaceRoot = null;
+
+  private Analyzer analyzer;
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
     _.msg(params.toString());
     workspaceRoot = params.getRootUri();
     if (workspaceRoot == null || workspaceRoot == "") {
-      throw new RuntimeException("got " + workspaceRoot);
-    } 
+      _.die("got null workspaceRoot");
+    }
+
+    Map<String, Object> options = new HashMap<>();
+    positions = new LinkedHashMap<>();
+    analyzer = new Analyzer(options);
+    analyzer.analyze(workspaceRoot.substring(7));
+    generateRefs();
 
     ServerCapabilities capabilities = new ServerCapabilities();
     capabilities.setDefinitionProvider(true);
@@ -36,9 +50,44 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     return CompletableFuture.completedFuture(new InitializeResult(capabilities));
   }
 
+  public void generateRefs() {
+
+    for (Map.Entry<Node, List<Binding>> e : analyzer.references.entrySet()) {
+
+      Node node = e.getKey();
+      String file = node.file;
+
+      if (file != null && file.startsWith(Analyzer.self.projectDir)) {
+        file = _.projRelPath(file);
+
+        String positionKey = file + "-" + node.line + "-" + node.col;
+
+        List<Map<String, Object>> dests = new ArrayList<>();
+        for (Binding b : e.getValue()) {
+          String destFile = b.file;
+          if (destFile != null && destFile.startsWith(Analyzer.self.projectDir)) {
+            destFile = _.projRelPath(destFile);
+            Map<String, Object> dest = new LinkedHashMap<>();
+            dest.put("name", b.node.name);
+            dest.put("file", destFile);
+            dest.put("start", b.start);
+            dest.put("end", b.end);
+            dest.put("line", b.node.line);
+            dest.put("col", b.node.col);
+            dests.add(dest);
+            _.msg("dests: " + b.node.name + destFile + b.node.line + b.node.col);
+          }
+        }
+        if (!dests.isEmpty()) {
+          positions.put(positionKey, dests);
+        }
+      }
+    }
+  }
+
   @Override
   public CompletableFuture<Object> shutdown() {
-    return  CompletableFuture.completedFuture(null);
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
@@ -50,7 +99,35 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     this.client = client;
   }
 
-  private FullTextDocumentService fullTextDocumentService = new FullTextDocumentService(workspaceRoot);
+  private FullTextDocumentService fullTextDocumentService = new FullTextDocumentService() {
+
+    @Override
+    public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
+      String uri = position.getTextDocument().getUri();
+      String[] uriSplit = uri.split("/");
+      String file = uriSplit[uriSplit.length-1];
+      int line = position.getPosition().getLine()+1;
+      int col = position.getPosition().getCharacter()+1;
+      String positionKey = file + "-" + line + "-" + col;
+      for (Entry<String, List<Map<String, Object>>> e : RubyLanguageServer.positions.entrySet()) {
+        _.msg("------Key: "+ e.getKey());
+        Map<String, Object> value = e.getValue().get(0);
+        _.msg("------Value: " + value.get("name") + " " + value.get("file") + " " + value.get("line") + " " + value.get("col"));
+      }
+        List<Map<String, Object>> dests = RubyLanguageServer.positions.get(positionKey);
+        _.msg("======");
+        _.msg(positionKey);
+        Range r;  
+        if (dests == null) {
+            r = new Range();
+        } else {
+            int targetLine = (int)dests.get(0).get("line") - 1;
+            int targetCol = (int)dests.get(0).get("col")-1;
+            r = new Range(new Position(targetLine, targetCol), new Position(targetLine, targetCol+1));
+        }
+        return CompletableFuture.completedFuture(Arrays.asList(new Location("file://" +Analyzer.self.projectDir + "/"+ file, r)));
+    }
+  };
 
   @Override
   public TextDocumentService getTextDocumentService() {
