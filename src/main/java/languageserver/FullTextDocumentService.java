@@ -38,8 +38,6 @@ class FullTextDocumentService implements TextDocumentService {
     public FullTextDocumentService() {}
 
     public FullTextDocumentService(String workspaceRoot) {
-        _.msg("-------");
-        _.msg(workspaceRoot);
         Map<String, Object> options = new HashMap<>();
         positions = new LinkedHashMap<>();
         analyzer = new Analyzer(options);

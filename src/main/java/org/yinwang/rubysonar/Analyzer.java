@@ -108,7 +108,6 @@ public class Analyzer {
 
     // main entry to the analyzer
     public void analyze(String path) {
-        _.msg("--------" + path);
         String upath = _.unifyPath(path);
         File f = new File(upath);
         projectDir = f.isDirectory() ? f.getPath() : f.getParent();
@@ -316,7 +315,6 @@ public class Analyzer {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
-            _.msg("------ " + file);
             Node ast = getAstForFile(file);
 
             if (ast == null) {

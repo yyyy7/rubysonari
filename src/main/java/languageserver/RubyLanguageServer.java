@@ -7,10 +7,10 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import org.yinwang.rubysonar.Analyzer;
 import org.yinwang.rubysonar.Binding;
 import org.yinwang.rubysonar._;
 import org.yinwang.rubysonar.ast.Node;
+import org.yinwang.rubysonar.Analyzer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 
 class RubyLanguageServer implements LanguageServer, LanguageClientAware {
   private LanguageClient client = null;
-  public static Map<String, List<Map<String, Object>>> positions;
+  public static Map<String, Map<Integer, Map<String, List<Map<String, Object>>>>> positions;
   // @SuppressWarnings("unused")
   private String workspaceRoot = null;
 
@@ -41,11 +41,12 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     positions = new LinkedHashMap<>();
     analyzer = new Analyzer(options);
     analyzer.analyze(workspaceRoot.substring(7));
+    analyzer.finish();
     generateRefs();
 
     ServerCapabilities capabilities = new ServerCapabilities();
     capabilities.setDefinitionProvider(true);
-    capabilities.setHoverProvider(true);
+    // capabilities.setHoverProvider(true);
 
     return CompletableFuture.completedFuture(new InitializeResult(capabilities));
   }
@@ -57,16 +58,23 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       Node node = e.getKey();
       String file = node.file;
 
-      if (file != null && file.startsWith(Analyzer.self.projectDir)) {
-        file = _.projRelPath(file);
+      Map<Integer, Map<String, List<Map<String, Object>>>> fileRefs;
+      if (!positions.containsKey(file)) { positions.put(file, new LinkedHashMap<>()); }
+      fileRefs= positions.get(file);
 
-        String positionKey = file + "-" + node.line + "-" + node.col;
+      Map<String, List<Map<String, Object>>> lineRefs;
+      if (!fileRefs.containsKey(node.line)) { fileRefs.put(node.line, new LinkedHashMap<>()); }
+      lineRefs = fileRefs.get(node.line);
+
+      if (file != null && file.startsWith(Analyzer.self.projectDir)) {
+
+        String positionKey = node.col + "-" + (node.col + node.end - node.start);
+        // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " + node.end + " start: " + node.start);
 
         List<Map<String, Object>> dests = new ArrayList<>();
         for (Binding b : e.getValue()) {
           String destFile = b.file;
           if (destFile != null && destFile.startsWith(Analyzer.self.projectDir)) {
-            destFile = _.projRelPath(destFile);
             Map<String, Object> dest = new LinkedHashMap<>();
             dest.put("name", b.node.name);
             dest.put("file", destFile);
@@ -75,12 +83,14 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
             dest.put("line", b.node.line);
             dest.put("col", b.node.col);
             dests.add(dest);
-            _.msg("dests: " + b.node.name + destFile + b.node.line + b.node.col);
           }
         }
         if (!dests.isEmpty()) {
-          positions.put(positionKey, dests);
+          lineRefs.put(positionKey, dests);
         }
+
+        Map<String, Object> v = dests.get(0);
+         //_.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " + String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
       }
     }
   }
@@ -103,29 +113,47 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
-      String uri = position.getTextDocument().getUri();
-      String[] uriSplit = uri.split("/");
-      String file = uriSplit[uriSplit.length-1];
+      String uri = position.getTextDocument().getUri().substring(7);
       int line = position.getPosition().getLine()+1;
       int col = position.getPosition().getCharacter()+1;
-      String positionKey = file + "-" + line + "-" + col;
+      String positionKey = uri;
+      /*
       for (Entry<String, List<Map<String, Object>>> e : RubyLanguageServer.positions.entrySet()) {
         _.msg("------Key: "+ e.getKey());
         Map<String, Object> value = e.getValue().get(0);
         _.msg("------Value: " + value.get("name") + " " + value.get("file") + " " + value.get("line") + " " + value.get("col"));
       }
-        List<Map<String, Object>> dests = RubyLanguageServer.positions.get(positionKey);
-        _.msg("======");
-        _.msg(positionKey);
+      */
+        List<Map<String, Object>> dests = new ArrayList<>();
+        Map<String, List<Map<String, Object>>> lineRefs = RubyLanguageServer.positions.get(uri).get(line);
+        if (lineRefs != null) {
+        for (Entry<String, List<Map<String, Object>>> r : lineRefs.entrySet()) {
+          _.msg(r.getKey());
+          Map<String, Object> v= r.getValue().get(0);
+          _.msg(String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
+
+
+          String[] colRange = r.getKey().split("-");
+          if (Integer.parseInt(colRange[0])<= col && Integer.parseInt(colRange[1]) >= col) {
+            dests = r.getValue();
+          }
+        }
+      }
+        _.msg("======：" + position.toString());
         Range r;  
-        if (dests == null) {
+        String targetFile = uri;
+        if (dests.size() == 0) {
             r = new Range();
         } else {
-            int targetLine = (int)dests.get(0).get("line") - 1;
-            int targetCol = (int)dests.get(0).get("col")-1;
+            Map<String, Object> dest = dests.get(0);
+            targetFile = (String)dest.get("file");
+            int targetLine = (int)dest.get("line") - 1;
+            int targetCol = (int)dest.get("col")-1;
             r = new Range(new Position(targetLine, targetCol), new Position(targetLine, targetCol+1));
         }
-        return CompletableFuture.completedFuture(Arrays.asList(new Location("file://" +Analyzer.self.projectDir + "/"+ file, r)));
+        Location l = new Location("file://" + targetFile, r);
+        _.msg(l.toString());
+        return CompletableFuture.completedFuture(Arrays.asList(l));
     }
   };
 
