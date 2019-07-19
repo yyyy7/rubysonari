@@ -1,4 +1,4 @@
-package languageserver;
+package com.qiyu.languageserver;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;

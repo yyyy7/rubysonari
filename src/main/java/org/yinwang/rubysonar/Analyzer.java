@@ -315,6 +315,7 @@ public class Analyzer {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
+            _.msg("parse " + file + ".............");
             Node ast = getAstForFile(file);
 
             if (ast == null) {
@@ -387,6 +388,12 @@ public class Analyzer {
 
 
     public void loadFileRecursive(String fullname) {
+
+        // 过滤测试目录
+        //if (fullname.contains("test")) {
+        //    return;
+        //}
+
         int count = countFileRecursive(fullname);
         if (loadingProgress == null) {
             loadingProgress = new Progress(count, 50);

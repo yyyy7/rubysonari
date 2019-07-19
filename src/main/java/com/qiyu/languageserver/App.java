@@ -1,4 +1,4 @@
-package languageserver;
+package com.qiyu.languageserver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +16,8 @@ public class App {
     String port = args[0];
 
     try {
+      
       Socket socket = new Socket("localhost", Integer.parseInt(port));
-
       InputStream in = socket.getInputStream();
       OutputStream out = socket.getOutputStream();
 
@@ -29,7 +29,7 @@ public class App {
 
       launcher.startListening();
     } catch (IOException e) {
-      e.printStackTrace();
+      System.out.println(e.getMessage());
     }
   }
 }

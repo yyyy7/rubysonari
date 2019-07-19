@@ -3,6 +3,10 @@ class A
     @x = 42
   end
   attr_accessor :x
+
+  def m
+    puts 'mmm'
+  end
 end
 
 
@@ -22,3 +26,4 @@ end
 o2 = B.new
 puts o2.x
 puts o2.y
+o2.m

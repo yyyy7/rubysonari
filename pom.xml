@@ -85,7 +85,7 @@
             <archive>
               <manifest>
                 <!-- 这里是你的项目main函数所在的类的全限定名 -->
-                <mainClass>languageserver.App</mainClass> 
+                <mainClass>com.qiyu.languageserver.App</mainClass> 
               </manifest>
             </archive>
             <descriptorRefs>

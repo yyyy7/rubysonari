@@ -1,4 +1,4 @@
-package languageserver;
+package com.qiyu.languageserver;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -40,6 +40,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     Map<String, Object> options = new HashMap<>();
     positions = new LinkedHashMap<>();
     analyzer = new Analyzer(options);
+    //analyzer.analyze("/Users/frontier/rails");
     analyzer.analyze(workspaceRoot.substring(7));
     analyzer.finish();
     generateRefs();
@@ -59,17 +60,22 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       String file = node.file;
 
       Map<Integer, Map<String, List<Map<String, Object>>>> fileRefs;
-      if (!positions.containsKey(file)) { positions.put(file, new LinkedHashMap<>()); }
-      fileRefs= positions.get(file);
+      if (!positions.containsKey(file)) {
+        positions.put(file, new LinkedHashMap<>());
+      }
+      fileRefs = positions.get(file);
 
       Map<String, List<Map<String, Object>>> lineRefs;
-      if (!fileRefs.containsKey(node.line)) { fileRefs.put(node.line, new LinkedHashMap<>()); }
+      if (!fileRefs.containsKey(node.line)) {
+        fileRefs.put(node.line, new LinkedHashMap<>());
+      }
       lineRefs = fileRefs.get(node.line);
 
       if (file != null && file.startsWith(Analyzer.self.projectDir)) {
 
         String positionKey = node.col + "-" + (node.col + node.end - node.start);
-        // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " + node.end + " start: " + node.start);
+        // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
+        // node.end + " start: " + node.start);
 
         List<Map<String, Object>> dests = new ArrayList<>();
         for (Binding b : e.getValue()) {
@@ -89,8 +95,10 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
           lineRefs.put(positionKey, dests);
         }
 
-        Map<String, Object> v = dests.get(0);
-         //_.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " + String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
+        // Map<String, Object> v = dests.get(0);
+        // _.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " +
+        // String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"),
+        // v.get("line"), v.get("col")));
       }
     }
   }
@@ -114,46 +122,45 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
       String uri = position.getTextDocument().getUri().substring(7);
-      int line = position.getPosition().getLine()+1;
-      int col = position.getPosition().getCharacter()+1;
+      int line = position.getPosition().getLine() + 1;
+      int col = position.getPosition().getCharacter() + 1;
       String positionKey = uri;
       /*
-      for (Entry<String, List<Map<String, Object>>> e : RubyLanguageServer.positions.entrySet()) {
-        _.msg("------Key: "+ e.getKey());
-        Map<String, Object> value = e.getValue().get(0);
-        _.msg("------Value: " + value.get("name") + " " + value.get("file") + " " + value.get("line") + " " + value.get("col"));
-      }
-      */
-        List<Map<String, Object>> dests = new ArrayList<>();
-        Map<String, List<Map<String, Object>>> lineRefs = RubyLanguageServer.positions.get(uri).get(line);
-        if (lineRefs != null) {
+       * for (Entry<String, List<Map<String, Object>>> e :
+       * RubyLanguageServer.positions.entrySet()) { _.msg("------Key: "+ e.getKey());
+       * Map<String, Object> value = e.getValue().get(0); _.msg("------Value: " +
+       * value.get("name") + " " + value.get("file") + " " + value.get("line") + " " +
+       * value.get("col")); }
+       */
+      List<Map<String, Object>> dests = new ArrayList<>();
+      Map<String, List<Map<String, Object>>> lineRefs = RubyLanguageServer.positions.get(uri).get(line);
+      if (lineRefs != null) {
         for (Entry<String, List<Map<String, Object>>> r : lineRefs.entrySet()) {
           _.msg(r.getKey());
-          Map<String, Object> v= r.getValue().get(0);
+          Map<String, Object> v = r.getValue().get(0);
           _.msg(String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
 
-
           String[] colRange = r.getKey().split("-");
-          if (Integer.parseInt(colRange[0])<= col && Integer.parseInt(colRange[1]) >= col) {
+          if (Integer.parseInt(colRange[0]) <= col && Integer.parseInt(colRange[1]) >= col) {
             dests = r.getValue();
           }
         }
       }
-        _.msg("======：" + position.toString());
-        Range r;  
-        String targetFile = uri;
-        if (dests.size() == 0) {
-            r = new Range();
-        } else {
-            Map<String, Object> dest = dests.get(0);
-            targetFile = (String)dest.get("file");
-            int targetLine = (int)dest.get("line") - 1;
-            int targetCol = (int)dest.get("col")-1;
-            r = new Range(new Position(targetLine, targetCol), new Position(targetLine, targetCol+1));
-        }
-        Location l = new Location("file://" + targetFile, r);
-        _.msg(l.toString());
-        return CompletableFuture.completedFuture(Arrays.asList(l));
+      _.msg("======：" + position.toString());
+      Range r;
+      String targetFile = uri;
+      if (dests.size() == 0) {
+        r = new Range();
+      } else {
+        Map<String, Object> dest = dests.get(0);
+        targetFile = (String) dest.get("file");
+        int targetLine = (int) dest.get("line") - 1;
+        int targetCol = (int) dest.get("col") - 1;
+        r = new Range(new Position(targetLine, targetCol), new Position(targetLine, targetCol + 1));
+      }
+      Location l = new Location("file://" + targetFile, r);
+      _.msg(l.toString());
+      return CompletableFuture.completedFuture(Arrays.asList(l));
     }
   };
 
@@ -170,22 +177,22 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     return new WorkspaceService() {
       @Override
       public CompletableFuture<List<? extends SymbolInformation>> symbol(WorkspaceSymbolParams params) {
-          return null;
+        return null;
       }
 
       @Override
       public void didChangeConfiguration(DidChangeConfigurationParams params) {
-          Map<String, Object> settings = (Map<String, Object>) params.getSettings();
-          Map<String, Object> languageServerExample = (Map<String, Object>) settings.get("languageServerExample");
-          maxNumberOfProblems = ((Double)languageServerExample.getOrDefault("maxNumberOfProblems", 100.0)).intValue();
-          fullTextDocumentService.documents.values().forEach(d -> validateDocument(d));
+        Map<String, Object> settings = (Map<String, Object>) params.getSettings();
+        Map<String, Object> languageServerExample = (Map<String, Object>) settings.get("languageServerExample");
+        maxNumberOfProblems = ((Double) languageServerExample.getOrDefault("maxNumberOfProblems", 100.0)).intValue();
+        fullTextDocumentService.documents.values().forEach(d -> validateDocument(d));
       }
 
       @Override
       public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-          client.logMessage(new MessageParams(MessageType.Log, "We received an file change event"));
+        client.logMessage(new MessageParams(MessageType.Log, "We received an file change event"));
       }
-  };
+    };
   }
 
   private void validateDocument(TextDocumentItem document) {
@@ -193,17 +200,17 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     String[] lines = document.getText().split("\\r?\\n");
     int problems = 0;
     for (int i = 0; i < lines.length && problems < maxNumberOfProblems; i++) {
-        String line = lines[i];
-        int index = line.indexOf("typescript");
-        if (index >= 0) {
-            problems++;
-            Diagnostic diagnostic = new Diagnostic();
-            diagnostic.setSeverity(DiagnosticSeverity.Warning);
-            diagnostic.setRange(new Range(new Position(i, index), new Position(i, index + 10)));
-            diagnostic.setMessage(String.format("%s should be spelled TypeScript", line.substring(index, index + 10)));
-            diagnostic.setSource("ex");
-            diagnostics.add(diagnostic);
-        }
+      String line = lines[i];
+      int index = line.indexOf("typescript");
+      if (index >= 0) {
+        problems++;
+        Diagnostic diagnostic = new Diagnostic();
+        diagnostic.setSeverity(DiagnosticSeverity.Warning);
+        diagnostic.setRange(new Range(new Position(i, index), new Position(i, index + 10)));
+        diagnostic.setMessage(String.format("%s should be spelled TypeScript", line.substring(index, index + 10)));
+        diagnostic.setSource("ex");
+        diagnostics.add(diagnostic);
+      }
     }
 
     client.publishDiagnostics(new PublishDiagnosticsParams(document.getUri(), diagnostics));
