@@ -401,7 +401,8 @@ public class _ {
         try {
             return file.getCanonicalPath();
         } catch (Exception e) {
-            die("Failed to get canonical path");
+            msg(e.getMessage());
+            //die("Failed to get canonical path");
             return "";
         }
     }

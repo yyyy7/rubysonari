@@ -222,7 +222,23 @@ public class State {
      */
     @Nullable
     public List<Binding> lookupLocal(String name) {
-        return table.get(name);
+        List<Binding> b =  table.get(name);
+        if (b == null && stateType == StateType.INSTANCE) {
+            return lookupSuper(name);
+        }
+        return b;
+    }
+
+    // look up a name from the super for the instance
+    @Nullable
+    public List<Binding> lookupSuper(String name) {
+        List<Binding> superBinding =  table.get("super");
+        if (superBinding != null) {
+            State superTable = superBinding.get(0).type.table;
+            return superTable.lookupLocal(name);
+        }
+
+        return null;
     }
 
 

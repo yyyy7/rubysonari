@@ -1,9 +1,15 @@
-def a
-  puts 'a'
+class Parent
+  def parent
+    puts 'parent'
+  end
 end
 
-def b
-  a
+class Child < Parent
+  def child
+    puts 'child'
+  end
 end
 
-b
+c = Child.new
+c.parent
+c.child

@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class Parser {
 
-    private static final String RUBY_EXE = "irb";
+    private static final String RUBY_EXE = "irb";//"C:/Ruby24-x64/bin/irb";
     private static final int TIMEOUT = 30000;
 
     @Nullable
@@ -624,14 +624,21 @@ public class Parser {
             return null;
         }
 
-        try {
-            ProcessBuilder builder = new ProcessBuilder(interpExe);
+            ProcessBuilder builder = new ProcessBuilder();
+            if (getCurrentOS().contains("win")) {
+                builder.command("cmd.exe", "/c", interpExe);
+            } else {
+                builder.command(interpExe);
+            }
+
             builder.redirectErrorStream(true);
             builder.redirectError(new File(parserLog));
             builder.redirectOutput(new File(parserLog));
+        try {
             builder.environment().remove("RUBYLIB");
             p = builder.start();
         } catch (Exception e) {
+            _.msg(e.getMessage());
             _.die("Failed to start irb");
             return null;
         }
@@ -728,6 +735,10 @@ public class Parser {
     private void cleanTemp() {
         new File(exchangeFile).delete();
         new File(endMark).delete();
+    }
+
+    private String getCurrentOS() {
+        return System.getProperty("os.name").toLowerCase();
     }
 
 
