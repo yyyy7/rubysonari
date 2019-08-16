@@ -41,6 +41,7 @@ public class Test {
 
 
     public void runAnalysis(String dir) {
+        //analyzer.analyze("/Users/frontier/.rvm/gems/ruby-2.3.1@boko/bundler/gems/atyun_rails-e3e0f03dc43c");
         analyzer.analyze(dir);
         analyzer.finish();
     }
@@ -54,7 +55,7 @@ public class Test {
             String file = e.getKey().file;
 
             // only record those in the inputDir
-            if (file != null && file.startsWith(Analyzer.self.projectDir)) {
+            if (file != null  /*file.startsWith(Analyzer.self.projectDir)*/) {
                 file = _.projRelPath(file);
                 Map<String, Object> writeout = new LinkedHashMap<>();
 
@@ -69,7 +70,7 @@ public class Test {
                 List<Map<String, Object>> dests = new ArrayList<>();
                 for (Binding b : e.getValue()) {
                     String destFile = b.file;
-                    if (destFile != null && destFile.startsWith(Analyzer.self.projectDir)) {
+                    if (destFile != null /*&& destFile.startsWith(Analyzer.self.projectDir)*/) {
                         destFile = _.projRelPath(destFile);
                         Map<String, Object> dest = new LinkedHashMap<>();
                         dest.put("name", b.node.name);

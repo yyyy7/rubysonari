@@ -1,4 +1,8 @@
 class Parent
+  include AA
+  res = Response.rescue do |res|
+    puts 'aaa'
+  end
   def parent
     puts 'parent'
   end

@@ -40,7 +40,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     Map<String, Object> options = new HashMap<>();
     positions = new LinkedHashMap<>();
     analyzer = new Analyzer(options);
-    //analyzer.analyze("/Users/frontier/rails");
+    analyzer.analyze("/Users/frontier/rails");
     analyzer.analyze(workspaceRoot.substring(7));
     analyzer.finish();
     generateRefs();
@@ -71,8 +71,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       }
       lineRefs = fileRefs.get(node.line);
 
-      if (file != null && file.startsWith(Analyzer.self.projectDir)) {
-
+      if (file != null) {
         String positionKey = node.col + "-" + (node.col + node.end - node.start);
         // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
         // node.end + " start: " + node.start);
@@ -80,7 +79,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
         List<Map<String, Object>> dests = new ArrayList<>();
         for (Binding b : e.getValue()) {
           String destFile = b.file;
-          if (destFile != null && destFile.startsWith(Analyzer.self.projectDir)) {
+          if (destFile != null) {
             Map<String, Object> dest = new LinkedHashMap<>();
             dest.put("name", b.node.name);
             dest.put("file", destFile);
@@ -149,18 +148,22 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       _.msg("======：" + position.toString());
       Range r;
       String targetFile = uri;
+      List<Location> locations = new ArrayList<>();
       if (dests.size() == 0) {
         r = new Range();
       } else {
-        Map<String, Object> dest = dests.get(0);
-        targetFile = (String) dest.get("file");
-        int targetLine = (int) dest.get("line") - 1;
-        int targetCol = (int) dest.get("col") - 1;
-        r = new Range(new Position(targetLine, targetCol), new Position(targetLine, targetCol + 1));
+        for(Map<String, Object> dest : dests) {
+          // Map<String, Object> dest = dests.get(0);
+          targetFile = (String) dest.get("file");
+          int targetLine = (int) dest.get("line") - 1;
+          int targetCol = (int) dest.get("col") - 1;
+          r = new Range(new Position(targetLine, targetCol), new Position(targetLine, targetCol + 1));
+          locations.add(new Location("file://" + targetFile, r));
+        }
       }
-      Location l = new Location("file://" + targetFile, r);
-      _.msg(l.toString());
-      return CompletableFuture.completedFuture(Arrays.asList(l));
+      //Location l = new Location("file://" + targetFile, r);
+      //_.msg(l.toString());
+      return CompletableFuture.completedFuture(locations);
     }
   };
 
