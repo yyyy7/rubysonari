@@ -42,6 +42,15 @@ public class Test {
 
     public void runAnalysis(String dir) {
         //analyzer.analyze("/Users/frontier/.rvm/gems/ruby-2.3.1@boko/bundler/gems/atyun_rails-e3e0f03dc43c");
+        Analyzer gemsCache = Analyzer.deserialize();
+        if ( gemsCache == null) {
+            analyzer.analyze("/Users/frontier/rails");
+            Analyzer.serialize(analyzer);
+        } else {
+            analyzer = gemsCache;
+            analyzer.semanticErrors = new HashMap<>();
+            Analyzer.self = analyzer;
+        }
         analyzer.analyze(dir);
         analyzer.finish();
     }

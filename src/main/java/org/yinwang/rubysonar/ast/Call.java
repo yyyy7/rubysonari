@@ -62,6 +62,7 @@ public class Call extends Node {
             }
 
             // handle 'include'
+            // todo need to auto load Const
             if (fn.id.equals("include") || fn.id.equals("extend")) {
                 if (args != null && args.size() > 0) {
                     Node arg1 = args.get(0);
@@ -332,12 +333,12 @@ public class Call extends Node {
                         fromType.add(pTypes.get(pTypes.size() - nAfter + i));
                     }
                     if (pTypes.size() - nAfter > 0 && pTypes.size() - nAfter >= pSize) {
-                        Type restType = new TupleType(pTypes.subList(pSize, pTypes.size() - nAfter));
+                        Type restType = new TupleType(new ArrayList<Type>(pTypes.subList(pSize, pTypes.size() - nAfter)));
                         Binder.bind(funcTable, rest, restType, Binding.Kind.PARAMETER);
                         fromType.add(restType);
                     }
                 } else {
-                    Type restType = new TupleType(pTypes.subList(pSize, pTypes.size()));
+                    Type restType = new TupleType(new ArrayList<Type>(pTypes.subList(pSize, pTypes.size())));
                     Binder.bind(funcTable, rest, restType, Binding.Kind.PARAMETER);
                     fromType.add(restType);
                 }

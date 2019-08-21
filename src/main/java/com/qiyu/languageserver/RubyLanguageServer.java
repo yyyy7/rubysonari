@@ -37,10 +37,8 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       _.die("got null workspaceRoot");
     }
 
-    Map<String, Object> options = new HashMap<>();
     positions = new LinkedHashMap<>();
-    analyzer = new Analyzer(options);
-    analyzer.analyze("/Users/frontier/rails");
+    analyzer = Analyzer.newCachedInstance(); 
     analyzer.analyze(workspaceRoot.substring(7));
     analyzer.finish();
     generateRefs();

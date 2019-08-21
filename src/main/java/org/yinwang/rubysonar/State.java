@@ -10,10 +10,13 @@ import org.yinwang.rubysonar.types.ModuleType;
 import org.yinwang.rubysonar.types.Type;
 import org.yinwang.rubysonar.types.UnionType;
 
+import java.io.Serializable;
 import java.util.*;
 
 
-public class State {
+public class State implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     public enum StateType {
         CLASS,
         INSTANCE,

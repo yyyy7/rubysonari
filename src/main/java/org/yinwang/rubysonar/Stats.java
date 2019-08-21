@@ -1,10 +1,11 @@
 package org.yinwang.rubysonar;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class Stats {
+public class Stats implements Serializable {
     Map<String, Object> contents = new HashMap<>();
 
 

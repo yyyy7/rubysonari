@@ -15,6 +15,7 @@ import java.util.List;
 
 public abstract class Node implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
     public String file;
     public int start = -1;
     public int end = -1;

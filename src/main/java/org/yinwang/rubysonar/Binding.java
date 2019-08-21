@@ -8,11 +8,14 @@ import org.yinwang.rubysonar.ast.*;
 import org.yinwang.rubysonar.types.ModuleType;
 import org.yinwang.rubysonar.types.Type;
 
+import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 
-public class Binding implements Comparable<Object> {
+public class Binding implements Comparable<Object>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public enum Kind {
         MODULE,       // file

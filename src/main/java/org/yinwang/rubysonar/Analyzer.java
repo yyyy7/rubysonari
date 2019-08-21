@@ -12,11 +12,18 @@ import org.yinwang.rubysonar.types.ModuleType;
 import org.yinwang.rubysonar.types.Type;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.*;
 
 
-public class Analyzer {
+public class Analyzer implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static String MODEL_LOCATION = "org/yinwang/rubysonar/models";
 
@@ -35,7 +42,7 @@ public class Analyzer {
     public Set<Name> resolved = new HashSet<>();
     public Set<Name> unresolved = new HashSet<>();
 
-    public Map<String, List<Diagnostic>> semanticErrors = new HashMap<>();
+    public transient Map<String, List<Diagnostic>> semanticErrors = new HashMap<>();
     public Set<String> failedToParse = new HashSet<>();
 
 
@@ -44,9 +51,9 @@ public class Analyzer {
     private Set<Object> callStack = new HashSet<>();
     private Set<Object> importStack = new HashSet<>();
 
-    private AstCache astCache;
+    private transient AstCache astCache;
     public Stats stats = new Stats();
-    private Progress loadingProgress = null;
+    private transient Progress loadingProgress = null;
 
     public String projectDir;
     public String cacheDir;
@@ -78,6 +85,22 @@ public class Analyzer {
         copyModels();
         createCacheDir();
         getAstCache();
+    }
+
+    // cache gems after analyzing
+    public static Analyzer newCachedInstance() {
+        Map<String, Object> options = new HashMap<>();
+        Analyzer analyzer = new Analyzer(options);
+        Analyzer gemsCache = Analyzer.deserialize();
+        if ( gemsCache == null) {
+            analyzer.analyze("/Users/frontier/rails");
+            Analyzer.serialize(analyzer);
+        } else {
+            analyzer = gemsCache;
+            analyzer.semanticErrors = new HashMap<>();
+            Analyzer.self = analyzer;
+        }
+        return analyzer;
     }
 
 
@@ -390,9 +413,9 @@ public class Analyzer {
     public void loadFileRecursive(String fullname) {
 
         // 过滤测试目录
-        //if (fullname.contains("test")) {
-        //    return;
-        //}
+        if (fullname.contains("test") && fullname.contains("rails")) {
+            return;
+        }
 
         int count = countFileRecursive(fullname);
         if (loadingProgress == null) {
@@ -534,6 +557,29 @@ public class Analyzer {
 
     public void setStaticContext(boolean staticContext) {
         this.staticContext = staticContext;
+    }
+
+
+
+    public static void serialize(Analyzer analyzer) {
+        try (FileOutputStream fos = new FileOutputStream("gems_cache.ser");
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(analyzer);
+        } catch (Exception e) {
+            _.msg(e.getMessage());
+            _.die("serialize error");
+        }
+    }
+
+    public static Analyzer deserialize() {
+        try (FileInputStream fis = new FileInputStream("gems_cache.ser");
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            return (Analyzer)ois.readObject();
+        } catch (Exception e) {
+            _.msg(e.getMessage());
+            //_.die("deserialize error");
+            return null;
+        }
     }
 
 
