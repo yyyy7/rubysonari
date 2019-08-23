@@ -47,6 +47,7 @@ public class Name extends Node {
     @Override
     public Type transform(@NotNull State s) {
         List<Binding> b;
+        if (isConst()) Analyzer.self.autoLoadModule(this.id);
 
         if (Analyzer.self.staticContext) {
             b = s.lookupTagged(id, "class");
@@ -103,6 +104,10 @@ public class Name extends Node {
 
     public boolean isGlobalVar() {
         return type == NameType.GLOBAL;
+    }
+
+    public boolean isConst() {
+        return Character.isUpperCase(id.charAt(0));
     }
 
 

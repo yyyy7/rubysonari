@@ -1,5 +1,6 @@
 package org.yinwang.rubysonar;
 
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yinwang.rubysonar.ast.Call;
@@ -19,6 +20,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
+import com.google.common.base.CaseFormat;
 
 
 public class Analyzer implements Serializable {
@@ -91,15 +94,15 @@ public class Analyzer implements Serializable {
     public static Analyzer newCachedInstance() {
         Map<String, Object> options = new HashMap<>();
         Analyzer analyzer = new Analyzer(options);
-        Analyzer gemsCache = Analyzer.deserialize();
-        if ( gemsCache == null) {
-            analyzer.analyze("/Users/frontier/rails");
-            Analyzer.serialize(analyzer);
-        } else {
-            analyzer = gemsCache;
-            analyzer.semanticErrors = new HashMap<>();
-            Analyzer.self = analyzer;
-        }
+        //Analyzer gemsCache = Analyzer.deserialize();
+        //if ( gemsCache == null) {
+        //    analyzer.analyze("/Users/frontier/rails");
+        //    Analyzer.serialize(analyzer);
+        //} else {
+        //    analyzer = gemsCache;
+        //    analyzer.semanticErrors = new HashMap<>();
+        //    Analyzer.self = analyzer;
+        //}
         return analyzer;
     }
 
@@ -308,6 +311,7 @@ public class Analyzer implements Serializable {
 
     @Nullable
     public Type loadFile(String path) {
+        if (loadedFiles.contains(path)) return null;
         path = _.unifyPath(path);
         File f = new File(path);
 
@@ -400,12 +404,32 @@ public class Analyzer implements Serializable {
         List<String> loadPath = getLoadPath();
 
         for (String p : loadPath) {
-            String trial = _.makePathString(p, headName + suffix);
-            if (new File(trial).exists()) {
-                return loadFile(trial);
-            }
+            Type t =  requireFileRecursive(p, headName);
+            if (t != null) return t;
+        //    String trial = _.makePathString(p, headName + suffix);
+        //    if (new File(trial).exists()) {
+        //        return loadFile(trial);
+        //    }
         }
 
+        return null;
+    }
+
+    public Type requireFileRecursive(String path, String baseName) {
+        String trial = _.makePathString(path, baseName + suffix);
+        if (new File(trial).exists()) return loadFile(trial);
+
+        File file_or_dir = new File(path);
+        if (file_or_dir.listFiles() == null) return null;
+        //Arrays.stream(file_or_dir.listFiles())
+        //      .filter(File::isDirectory)
+        //      .forEach(file -> requireFileRecursive(file.getPath(), baseName));
+        for (File file : file_or_dir.listFiles()){
+            if (file.isDirectory()) {
+                Type t = requireFileRecursive(file.getPath(), baseName);
+                if (t != null) return t;
+            }
+        }
         return null;
     }
 
@@ -547,6 +571,26 @@ public class Analyzer implements Serializable {
             }
         }
         return files;
+    }
+
+    public List<String> getLoadedConst() {
+        return loadedFiles.stream()
+                          .map(FilenameUtils::getBaseName)
+                          .collect(Collectors.toList());
+    }
+
+    public boolean isLoadedConst(String name) {
+        //String basename = FilenameUtils.getBaseName(name);
+        return getLoadedConst().indexOf(name) == -1 ? false : true;
+    }
+
+    /** 
+     * for analyzing rails
+     */
+    public void autoLoadModule(String name) {
+        String underscoreName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
+        if (isLoadedConst(underscoreName)) return;
+        self.requireFile(underscoreName);
     }
 
 

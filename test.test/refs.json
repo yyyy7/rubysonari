@@ -1,17 +1,37 @@
 [
   {
     "ref": {
+      "name": "Aa",
+      "file": "parent/parent.rb",
+      "start": 23,
+      "end": 25,
+      "line": 2,
+      "col": 11
+    },
+    "dests": [
+      {
+        "name": "Aa",
+        "file": "include_test/aa.rb",
+        "start": 7,
+        "end": 9,
+        "line": 1,
+        "col": 8
+      }
+    ]
+  },
+  {
+    "ref": {
       "name": "Parent",
-      "file": "test.rb",
-      "start": 75,
-      "end": 81,
-      "line": 7,
+      "file": "atest.rb",
+      "start": 41,
+      "end": 47,
+      "line": 3,
       "col": 15
     },
     "dests": [
       {
         "name": "Parent",
-        "file": "test.rb",
+        "file": "parent/parent.rb",
         "start": 6,
         "end": 12,
         "line": 1,
@@ -22,19 +42,19 @@
   {
     "ref": {
       "name": "Child",
-      "file": "test.rb",
-      "start": 132,
-      "end": 137,
-      "line": 13,
+      "file": "atest.rb",
+      "start": 92,
+      "end": 97,
+      "line": 9,
       "col": 5
     },
     "dests": [
       {
         "name": "Child",
-        "file": "test.rb",
-        "start": 67,
-        "end": 72,
-        "line": 7,
+        "file": "atest.rb",
+        "start": 33,
+        "end": 38,
+        "line": 3,
         "col": 7
       }
     ]
@@ -42,19 +62,19 @@
   {
     "ref": {
       "name": "c",
-      "file": "test.rb",
-      "start": 143,
-      "end": 144,
-      "line": 14,
+      "file": "atest.rb",
+      "start": 102,
+      "end": 103,
+      "line": 10,
       "col": 1
     },
     "dests": [
       {
         "name": "c",
-        "file": "test.rb",
-        "start": 128,
-        "end": 129,
-        "line": 13,
+        "file": "atest.rb",
+        "start": 88,
+        "end": 89,
+        "line": 9,
         "col": 1
       }
     ]
@@ -62,19 +82,19 @@
   {
     "ref": {
       "name": "parent",
-      "file": "test.rb",
-      "start": 145,
-      "end": 151,
-      "line": 14,
+      "file": "atest.rb",
+      "start": 104,
+      "end": 110,
+      "line": 10,
       "col": 3
     },
     "dests": [
       {
         "name": "parent",
-        "file": "test.rb",
-        "start": 20,
-        "end": 26,
-        "line": 2,
+        "file": "parent/parent.rb",
+        "start": 86,
+        "end": 92,
+        "line": 6,
         "col": 7
       }
     ]
@@ -82,19 +102,19 @@
   {
     "ref": {
       "name": "c",
-      "file": "test.rb",
-      "start": 153,
-      "end": 154,
-      "line": 15,
+      "file": "atest.rb",
+      "start": 111,
+      "end": 112,
+      "line": 11,
       "col": 1
     },
     "dests": [
       {
         "name": "c",
-        "file": "test.rb",
-        "start": 128,
-        "end": 129,
-        "line": 13,
+        "file": "atest.rb",
+        "start": 88,
+        "end": 89,
+        "line": 9,
         "col": 1
       }
     ]
@@ -102,19 +122,19 @@
   {
     "ref": {
       "name": "child",
-      "file": "test.rb",
-      "start": 155,
-      "end": 160,
-      "line": 15,
+      "file": "atest.rb",
+      "start": 113,
+      "end": 118,
+      "line": 11,
       "col": 3
     },
     "dests": [
       {
         "name": "child",
-        "file": "test.rb",
-        "start": 89,
-        "end": 94,
-        "line": 8,
+        "file": "atest.rb",
+        "start": 54,
+        "end": 59,
+        "line": 4,
         "col": 7
       }
     ]

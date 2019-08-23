@@ -1,4 +1,4 @@
-module AA
+module Aa
   def aa
     puts 'aa'
   end

@@ -66,6 +66,7 @@ public class Call extends Node {
             if (fn.id.equals("include") || fn.id.equals("extend")) {
                 if (args != null && args.size() > 0) {
                     Node arg1 = args.get(0);
+                    //Analyzer.self.autoLoadModule(((Name)arg1).id);
                     Type mod = transformExpr(arg1, s);
                     s.putAll(mod.table);
                     return Type.TRUE;
