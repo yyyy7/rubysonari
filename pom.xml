@@ -15,7 +15,7 @@
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-shade-plugin.version>2.1</maven-shade-plugin.version>
         <gson-version>2.2.4</gson-version>
-        <jackson-2-version>2.2.3</jackson-2-version>
+        <jackson-2-version>[2.9.9.2,)</jackson-2-version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
@@ -78,25 +78,6 @@
     </dependencies>
 
     <build>
-      <plugins>
-        <plugin>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <configuration>
-            <archive>
-              <manifest>
-                <!-- 这里是你的项目main函数所在的类的全限定名 -->
-                <mainClass>com.qiyu.languageserver.App</mainClass> 
-              </manifest>
-            </archive>
-            <descriptorRefs>
-              <descriptorRef>jar-with-dependencies</descriptorRef>
-            </descriptorRefs>
-          </configuration>
-        </plugin>
-      </plugins>
-    </build>
-
-    <!--build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
@@ -135,7 +116,7 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.yinwang.rubysonar.demos.Demo</mainClass>
+                                    <mainClass>com.qiyu.languageserver.App</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -143,6 +124,6 @@
                 </executions>
             </plugin>
         </plugins>
-    </build-->
+    </build>
 
 </project>
