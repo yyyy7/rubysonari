@@ -1,6 +1,9 @@
 package org.yinwang.rubysonar;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yinwang.rubysonar.ast.Call;
@@ -15,6 +18,7 @@ import org.yinwang.rubysonar.types.Type;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -39,6 +43,7 @@ public class Analyzer implements Serializable {
 
     public State globaltable = new State(null, State.StateType.GLOBAL);
 
+    private Set<String> loadedConst = new HashSet<>();
     public Set<String> loadedFiles = new HashSet<>();
     public List<Binding> allBindings = new ArrayList<>();
     public Map<Node, List<Binding>> references = new LinkedHashMap<>();
@@ -90,19 +95,21 @@ public class Analyzer implements Serializable {
         getAstCache();
     }
 
-    // cache gems after analyzing
     public static Analyzer newCachedInstance() {
         Map<String, Object> options = new HashMap<>();
+        options.put("quiet", true);
         Analyzer analyzer = new Analyzer(options);
-        //Analyzer gemsCache = Analyzer.deserialize();
-        //if ( gemsCache == null) {
-        //    analyzer.analyze("/Users/frontier/rails");
-        //    Analyzer.serialize(analyzer);
-        //} else {
-        //    analyzer = gemsCache;
-        //    analyzer.semanticErrors = new HashMap<>();
-        //    Analyzer.self = analyzer;
-        //}
+        /*
+        Analyzer gemsCache = Analyzer.deserialize();
+        if ( gemsCache == null) {
+            analyzer.analyze("/Users/frontier/rails");
+            Analyzer.serialize(analyzer);
+        } else {
+            analyzer = gemsCache;
+            analyzer.semanticErrors = new HashMap<>();
+            Analyzer.self = analyzer;
+        }
+        */
         return analyzer;
     }
 
@@ -189,7 +196,8 @@ public class Analyzer implements Serializable {
     public List<String> getLoadPath() {
         List<String> loadPath = new ArrayList<>();
         loadPath.addAll(path);
-        loadPath.add("/Users/yinwang/.rvm/src/ruby-2.0.0-p247/lib");
+        //loadPath.add("/Users/yinwang/.rvm/src/ruby-2.0.0-p247/lib");
+        if (!_.gemsPath.isEmpty()) loadPath.add(_.gemsPath);
 
         if (cwd != null) {
             loadPath.add(cwd);
@@ -342,7 +350,7 @@ public class Analyzer implements Serializable {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
-            _.msg("parse " + file + ".............");
+            //_.msg("parse " + file + ".............");
             Node ast = getAstForFile(file);
 
             if (ast == null) {
@@ -352,6 +360,7 @@ public class Analyzer implements Serializable {
                 Type type = Node.transformExpr(ast, globaltable);
                 if (!loadedFiles.contains(file)) {
                     loadedFiles.add(file);
+                    loadedConst.add(FilenameUtils.getBaseName(file));
                     loadingProgress.tick();
                 }
                 return type;
@@ -404,8 +413,13 @@ public class Analyzer implements Serializable {
         List<String> loadPath = getLoadPath();
 
         for (String p : loadPath) {
-            Type t =  requireFileRecursive(p, headName);
-            if (t != null) return t;
+            File dir = new File(p);
+            if(!dir.exists()) continue;
+            LinkedList<File> targetFiles = getTargetFiles(dir, headName);
+            if (targetFiles.size() > 0) 
+                return loadFile(targetFiles.getFirst().getPath());
+            //Type t =  requireFileRecursive(p, headName);
+            //if (t != null) return t;
         //    String trial = _.makePathString(p, headName + suffix);
         //    if (new File(trial).exists()) {
         //        return loadFile(trial);
@@ -413,6 +427,10 @@ public class Analyzer implements Serializable {
         }
 
         return null;
+    }
+
+    public LinkedList<File> getTargetFiles(File dir, String filename) {
+        return (LinkedList<File>)FileUtils.listFiles(dir, new NameFileFilter(filename + ".rb"), TrueFileFilter.INSTANCE);
     }
 
     public Type requireFileRecursive(String path, String baseName) {
@@ -481,7 +499,7 @@ public class Analyzer implements Serializable {
     public void finish() {
         _.msg("\nFinished loading files. " + nCalled + " functions were called.");
         _.msg("Analyzing uncalled functions");
-        applyUncalled();
+        //applyUncalled();
 
         // mark unused variables
         for (Binding b : allBindings) {
@@ -581,7 +599,8 @@ public class Analyzer implements Serializable {
 
     public boolean isLoadedConst(String name) {
         //String basename = FilenameUtils.getBaseName(name);
-        return getLoadedConst().indexOf(name) == -1 ? false : true;
+        // return getLoadedConst().indexOf(name) == -1 ? false : true;
+        return loadedConst.contains(name);
     }
 
     /** 

@@ -1,6 +1,7 @@
 package org.yinwang.rubysonar;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,7 @@ import java.util.jar.JarFile;
 public class _ {
 
     public static final Charset UTF_8 = Charset.forName("UTF-8");
+    public static String gemsPath = getGemsPath(); 
 
 
     public static String baseFileName(String filename) {
@@ -500,6 +502,18 @@ public class _ {
         } else {
             return "Too big to show you";
         }
+    }
+
+    public static String getGemsPath() {
+        String path = "";
+        try{
+            Process p = new ProcessBuilder("rvm", "gemdir").start();
+            path = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
+            path = StringUtils.chop(path);
+            p.destroy();
+        } catch (IOException ignoge) {
+        }
+        return path;
     }
 
 

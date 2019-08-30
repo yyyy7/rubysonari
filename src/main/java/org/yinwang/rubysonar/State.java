@@ -226,7 +226,7 @@ public class State implements Serializable{
     @Nullable
     public List<Binding> lookupLocal(String name) {
         List<Binding> b =  table.get(name);
-        if (b == null && stateType == StateType.INSTANCE) {
+        if (b == null && canLookupSuper()) {
             return lookupSuper(name);
         }
         return b;
@@ -254,6 +254,8 @@ public class State implements Serializable{
     /**
      * Look up a name (String) in the current symbol table.  If not found,
      * recurse on the parent table.
+     * 
+     * ! A name may be a method call
      */
     @Nullable
     public List<Binding> lookup(@NotNull String name) {
@@ -474,6 +476,10 @@ public class State implements Serializable{
 
     public boolean isEmpty() {
         return table.isEmpty();
+    }
+
+    private boolean canLookupSuper() {
+        return stateType == StateType.INSTANCE || stateType == StateType.CLASS;
     }
 
 

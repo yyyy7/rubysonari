@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class Parser {
 
-    private static final String RUBY_EXE = "irb";//"C:/Ruby24-x64/bin/irb";
+    private static final String RUBY_EXE = "irb";
     private static final int TIMEOUT = 30000;
 
     @Nullable

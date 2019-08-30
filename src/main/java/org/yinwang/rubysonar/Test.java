@@ -2,6 +2,10 @@ package org.yinwang.rubysonar;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.jetbrains.annotations.NotNull;
 import org.yinwang.rubysonar.ast.Dummy;
 import org.yinwang.rubysonar.ast.Node;
