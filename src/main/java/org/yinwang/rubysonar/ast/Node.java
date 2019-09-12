@@ -80,6 +80,10 @@ public abstract class Node implements java.io.Serializable {
         this.file = file;
     }
 
+    public String getFileName() {
+        return file;
+    }
+
 
     @NotNull
     public static Type transformExpr(@NotNull Node n, State s) {

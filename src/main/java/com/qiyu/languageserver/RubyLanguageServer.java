@@ -37,7 +37,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     }
 
     positions = new LinkedHashMap<>();
-    analyzer = Analyzer.newCachedInstance(); 
+    analyzer = Analyzer.newCachedInstance();
     analyzer.analyze(workspaceRoot.substring(7));
     analyzer.finish();
     generateRefs();
@@ -51,50 +51,52 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
   public void generateRefs() {
 
-    for (Map.Entry<Node, List<Binding>> e : analyzer.references.entrySet()) {
-
-      Node node = e.getKey();
-      String file = node.file;
-
-      Map<Integer, Map<String, List<Map<String, Object>>>> fileRefs;
+    for (Map.Entry<String, Map<Node, List<Binding>>> ee : analyzer.getReferences().entrySet()) {
+      String file = ee.getKey();
       if (!positions.containsKey(file)) {
         positions.put(file, new LinkedHashMap<>());
       }
-      fileRefs = positions.get(file);
 
-      Map<String, List<Map<String, Object>>> lineRefs;
-      if (!fileRefs.containsKey(node.line)) {
-        fileRefs.put(node.line, new LinkedHashMap<>());
-      }
-      lineRefs = fileRefs.get(node.line);
+      for (Map.Entry<Node, List<Binding>> e : ee.getValue().entrySet()) {
 
-      if (file != null) {
-        String positionKey = node.col + "-" + (node.col + node.end - node.start);
-        // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
-        // node.end + " start: " + node.start);
+        Node node = e.getKey();
 
-        List<Map<String, Object>> dests = new ArrayList<>();
-        for (Binding b : e.getValue()) {
-          String destFile = b.file;
-          if (destFile != null) {
-            Map<String, Object> dest = new LinkedHashMap<>();
-            dest.put("name", b.node.name);
-            dest.put("file", destFile);
-            dest.put("start", b.start);
-            dest.put("end", b.end);
-            dest.put("line", b.node.line);
-            dest.put("col", b.node.col);
-            dests.add(dest);
+        Map<Integer, Map<String, List<Map<String, Object>>>> fileRefs = positions.get(file);
+
+        Map<String, List<Map<String, Object>>> lineRefs;
+        if (!fileRefs.containsKey(node.line)) {
+          fileRefs.put(node.line, new LinkedHashMap<>());
+        }
+        lineRefs = fileRefs.get(node.line);
+
+        if (file != null) {
+          String positionKey = node.col + "-" + (node.col + node.end - node.start);
+          // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
+          // node.end + " start: " + node.start);
+
+          List<Map<String, Object>> dests = new ArrayList<>();
+          for (Binding b : e.getValue()) {
+            String destFile = b.file;
+            if (destFile != null) {
+              Map<String, Object> dest = new LinkedHashMap<>();
+              dest.put("name", b.node.name);
+              dest.put("file", destFile);
+              dest.put("start", b.start);
+              dest.put("end", b.end);
+              dest.put("line", b.node.line);
+              dest.put("col", b.node.col);
+              dests.add(dest);
+            }
           }
-        }
-        if (!dests.isEmpty()) {
-          lineRefs.put(positionKey, dests);
-        }
+          if (!dests.isEmpty()) {
+            lineRefs.put(positionKey, dests);
+          }
 
-        // Map<String, Object> v = dests.get(0);
-        // _.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " +
-        // String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"),
-        // v.get("line"), v.get("col")));
+          // Map<String, Object> v = dests.get(0);
+          // _.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " +
+          // String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"),
+          // v.get("line"), v.get("col")));
+        }
       }
     }
   }
@@ -130,8 +132,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
        */
       List<Map<String, Object>> dests = new ArrayList<>();
       Map<String, List<Map<String, Object>>> lineRefs = Optional.ofNullable(RubyLanguageServer.positions.get(uri))
-                                                                .map(h -> h.get(line))
-                                                                .orElse(Collections.emptyMap());
+          .map(h -> h.get(line)).orElse(Collections.emptyMap());
       for (Entry<String, List<Map<String, Object>>> r : lineRefs.entrySet()) {
         _.msg(r.getKey());
         Map<String, Object> v = r.getValue().get(0);
@@ -149,7 +150,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       if (dests.size() == 0) {
         r = new Range();
       } else {
-        for(Map<String, Object> dest : dests) {
+        for (Map<String, Object> dest : dests) {
           // Map<String, Object> dest = dests.get(0);
           targetFile = (String) dest.get("file");
           int targetLine = (int) dest.get("line") - 1;
@@ -158,8 +159,8 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
           locations.add(new Location("file://" + targetFile, r));
         }
       }
-      //Location l = new Location("file://" + targetFile, r);
-      //_.msg(l.toString());
+      // Location l = new Location("file://" + targetFile, r);
+      // _.msg(l.toString());
       return CompletableFuture.completedFuture(locations);
     }
   };
@@ -191,8 +192,11 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       @Override
       public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         for (FileEvent f : params.getChanges()) {
-            //client.logMessage(new MessageParams(MessageType.Log, "We received an file change event" + f.getUri()));
-            analyzer.loadFileRecursive(_.formatFileUri(f.getUri()));
+          String fileName = _.formatFileUri(f.getUri());
+          analyzer.removeReferencesByFileName(fileName);
+          // client.logMessage(new MessageParams(MessageType.Log, "We received an file
+          // change event" + f.getUri()));
+          analyzer.loadFileRecursive(fileName);
         }
       }
     };

@@ -46,7 +46,7 @@ public class Analyzer implements Serializable {
     private Set<String> loadedConst = new HashSet<>();
     public Set<String> loadedFiles = new HashSet<>();
     public List<Binding> allBindings = new ArrayList<>();
-    public Map<Node, List<Binding>> references = new LinkedHashMap<>();
+    public Map<String, Map<Node, List<Binding>>> references = new LinkedHashMap<>();
     public Set<Name> resolved = new HashSet<>();
     public Set<Name> unresolved = new HashSet<>();
 
@@ -267,10 +267,14 @@ public class Analyzer implements Serializable {
 
     public void putRef(@NotNull Node node, @NotNull List<Binding> bs) {
         if (!(node instanceof Url)) {
-            List<Binding> bindings = references.get(node);
+            if (!references.containsKey(node.getFileName())) {
+                references.put(node.getFileName(), new LinkedHashMap<>());
+            }
+            Map<Node, List<Binding>> fileReferences = references.get(node.getFileName());
+            List<Binding> bindings = fileReferences.get(node);
             if (bindings == null) {
                 bindings = new ArrayList<>(1);
-                references.put(node, bindings);
+                fileReferences.put(node, bindings);
             }
             for (Binding b : bs) {
                 if (!bindings.contains(b)) {
@@ -290,7 +294,7 @@ public class Analyzer implements Serializable {
 
 
     @NotNull
-    public Map<Node, List<Binding>> getReferences() {
+    public Map<String, Map<Node, List<Binding>>> getReferences() {
         return references;
     }
 
@@ -653,6 +657,10 @@ public class Analyzer implements Serializable {
             //_.die("deserialize error");
             return null;
         }
+    }
+
+    public void removeReferencesByFileName(String fileName) {
+        references.remove(fileName);
     }
 
 
