@@ -19,6 +19,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 
 /**
@@ -27,7 +29,11 @@ import java.util.jar.JarFile;
 public class _ {
 
     public static final Charset UTF_8 = Charset.forName("UTF-8");
-    public static String gemsPath = getGemsPath(); 
+    public static String gemsPath = getGemsPath() + "/" + "gems"; 
+    public static List<String> railsFiles = Arrays.asList("actioncable", "actionmailer", "actionpack",
+                                                          "actionview", "activejob", "actionmodel", 
+                                                          "actionrecord", "activestorage", "activesupport",
+                                                          "railties");
 
 
     public static String baseFileName(String filename) {
@@ -51,6 +57,34 @@ public class _ {
             return tmp;
         }
         return tmp + sep;
+    }
+
+    public static List<String> getRailsPath() {
+        File gems = new File(gemsPath);
+        return railsFiles.stream().map(f -> getRailsModulePath(gems, f))
+                                  .filter(f -> f != null)
+                                  .collect(Collectors.toList());
+    }
+
+    public static String getRailsModulePath(File gems, String module) {
+        //return Arrays.stream(gems.list()).filter(f -> f.indexOf(module) > -1)
+        //                               .findFirst()
+        //                               .get();
+
+        String prefixPath = gems.getPath();
+        for (String path : gems.list()) {
+            if (path.indexOf(module) > -1){
+                return prefixPath + "/" + path;
+            }
+        }
+        return null;
+    }
+
+    /** 
+     * change 'file:///Users/xxx/xxx.rb' to '/Users/xxx/xxx.rb'
+    */
+    public static String formatFileUri(String filename) {
+        return filename.substring(7);
     }
 
 

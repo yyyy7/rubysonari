@@ -1,7 +1,6 @@
 package com.qiyu.languageserver;
 
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
@@ -13,11 +12,11 @@ import org.yinwang.rubysonar.ast.Node;
 import org.yinwang.rubysonar.Analyzer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
@@ -130,17 +129,17 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
        * value.get("col")); }
        */
       List<Map<String, Object>> dests = new ArrayList<>();
-      Map<String, List<Map<String, Object>>> lineRefs = RubyLanguageServer.positions.get(uri).get(line);
-      if (lineRefs != null) {
-        for (Entry<String, List<Map<String, Object>>> r : lineRefs.entrySet()) {
-          _.msg(r.getKey());
-          Map<String, Object> v = r.getValue().get(0);
-          _.msg(String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
+      Map<String, List<Map<String, Object>>> lineRefs = Optional.ofNullable(RubyLanguageServer.positions.get(uri))
+                                                                .map(h -> h.get(line))
+                                                                .orElse(Collections.emptyMap());
+      for (Entry<String, List<Map<String, Object>>> r : lineRefs.entrySet()) {
+        _.msg(r.getKey());
+        Map<String, Object> v = r.getValue().get(0);
+        _.msg(String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
 
-          String[] colRange = r.getKey().split("-");
-          if (Integer.parseInt(colRange[0]) <= col && Integer.parseInt(colRange[1]) >= col) {
-            dests = r.getValue();
-          }
+        String[] colRange = r.getKey().split("-");
+        if (Integer.parseInt(colRange[0]) <= col && Integer.parseInt(colRange[1]) >= col) {
+          dests = r.getValue();
         }
       }
       _.msg("======：" + position.toString());
@@ -191,7 +190,10 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
       @Override
       public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-        client.logMessage(new MessageParams(MessageType.Log, "We received an file change event"));
+        for (FileEvent f : params.getChanges()) {
+            //client.logMessage(new MessageParams(MessageType.Log, "We received an file change event" + f.getUri()));
+            analyzer.loadFileRecursive(_.formatFileUri(f.getUri()));
+        }
       }
     };
   }

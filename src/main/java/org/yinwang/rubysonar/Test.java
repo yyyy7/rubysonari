@@ -26,9 +26,9 @@ public class Test {
 
     public Test(String inputDir, boolean exp) {
         // make a quiet analyzer
-        Map<String, Object> options = new HashMap<>();
+        //Map<String, Object> options = new HashMap<>();
 //        options.put("quiet", true);
-        this.analyzer = new Analyzer(options);
+        //this.analyzer = new Analyzer(options);
 
         this.inputDir = inputDir;
         this.exp = exp;
@@ -55,6 +55,7 @@ public class Test {
         //    analyzer.semanticErrors = new HashMap<>();
         //    Analyzer.self = analyzer;
         //}
+        analyzer = Analyzer.newCachedInstance();
         analyzer.analyze(dir);
         analyzer.finish();
     }

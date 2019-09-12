@@ -97,12 +97,13 @@ public class Analyzer implements Serializable {
 
     public static Analyzer newCachedInstance() {
         Map<String, Object> options = new HashMap<>();
-        options.put("quiet", true);
+        //options.put("quiet", true);
         Analyzer analyzer = new Analyzer(options);
-        /*
+        
         Analyzer gemsCache = Analyzer.deserialize();
+        /*
         if ( gemsCache == null) {
-            analyzer.analyze("/Users/frontier/rails");
+            analyzer.analyzeRails();
             Analyzer.serialize(analyzer);
         } else {
             analyzer = gemsCache;
@@ -110,6 +111,7 @@ public class Analyzer implements Serializable {
             Analyzer.self = analyzer;
         }
         */
+        
         return analyzer;
     }
 
@@ -155,6 +157,14 @@ public class Analyzer implements Serializable {
         }
     }
 
+    public void analyzeRails() {
+        projectDir = _.gemsPath;
+        for (String p : _.getRailsPath()) {
+            if (p == null) continue;
+            loadFileRecursive(_.unifyPath(p)); 
+        }
+    }
+
 
     public void setCWD(String cd) {
         if (cd != null) {
@@ -197,7 +207,7 @@ public class Analyzer implements Serializable {
         List<String> loadPath = new ArrayList<>();
         loadPath.addAll(path);
         //loadPath.add("/Users/yinwang/.rvm/src/ruby-2.0.0-p247/lib");
-        if (!_.gemsPath.isEmpty()) loadPath.add(_.gemsPath);
+        //if (!_.gemsPath.isEmpty()) loadPath.add(_.gemsPath);
 
         if (cwd != null) {
             loadPath.add(cwd);
@@ -319,7 +329,7 @@ public class Analyzer implements Serializable {
 
     @Nullable
     public Type loadFile(String path) {
-        if (loadedFiles.contains(path)) return null;
+        //if (loadedFiles.contains(path)) return null;
         path = _.unifyPath(path);
         File f = new File(path);
 
@@ -350,7 +360,7 @@ public class Analyzer implements Serializable {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
-            //_.msg("parse " + file + ".............");
+            _.msg("parsing " + file + ".............");
             Node ast = getAstForFile(file);
 
             if (ast == null) {
@@ -499,7 +509,7 @@ public class Analyzer implements Serializable {
     public void finish() {
         _.msg("\nFinished loading files. " + nCalled + " functions were called.");
         _.msg("Analyzing uncalled functions");
-        //applyUncalled();
+        applyUncalled();
 
         // mark unused variables
         for (Binding b : allBindings) {
