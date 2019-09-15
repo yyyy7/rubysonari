@@ -298,6 +298,10 @@ public class Analyzer implements Serializable {
         return references;
     }
 
+    public Map<Node, List<Binding>> getReferences(String filename) {
+        return references.get(filename);
+    }
+
 
     public void putProblem(@NotNull Node loc, String msg) {
         String file = loc.file;
@@ -659,7 +663,7 @@ public class Analyzer implements Serializable {
         }
     }
 
-    public void removeReferencesByFileName(String fileName) {
+    public void removeReferences(String fileName) {
         references.remove(fileName);
     }
 

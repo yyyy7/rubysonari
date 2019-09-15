@@ -64,42 +64,43 @@ public class Test {
     public void generateRefs() {
 
         List<Map<String, Object>> refs = new ArrayList<>();
-        for (Map.Entry<Node, List<Binding>> e : analyzer.references.entrySet()) {
-
+        for (Map.Entry<String, Map<Node, List<Binding>>> ee : analyzer.getReferences().entrySet()) {
             String file = e.getKey().file;
 
-            // only record those in the inputDir
-            if (file != null  /*file.startsWith(Analyzer.self.projectDir)*/) {
-                file = _.projRelPath(file);
-                Map<String, Object> writeout = new LinkedHashMap<>();
+            for (Map.Entry<Node, List<Binding>> e : ee.getValue().entrySet()) {
+                // only record those in the inputDir
+                if (file != null  /*file.startsWith(Analyzer.self.projectDir)*/) {
+                    file = _.projRelPath(file);
+                    Map<String, Object> writeout = new LinkedHashMap<>();
 
-                Map<String, Object> ref = new LinkedHashMap<>();
-                ref.put("name", e.getKey().name);
-                ref.put("file", file);
-                ref.put("start", e.getKey().start);
-                ref.put("end", e.getKey().end);
-                ref.put("line", e.getKey().line);
-                ref.put("col", e.getKey().col);
+                    Map<String, Object> ref = new LinkedHashMap<>();
+                    ref.put("name", e.getKey().name);
+                    ref.put("file", file);
+                    ref.put("start", e.getKey().start);
+                    ref.put("end", e.getKey().end);
+                    ref.put("line", e.getKey().line);
+                    ref.put("col", e.getKey().col);
 
-                List<Map<String, Object>> dests = new ArrayList<>();
-                for (Binding b : e.getValue()) {
-                    String destFile = b.file;
-                    if (destFile != null /*&& destFile.startsWith(Analyzer.self.projectDir)*/) {
-                        destFile = _.projRelPath(destFile);
-                        Map<String, Object> dest = new LinkedHashMap<>();
-                        dest.put("name", b.node.name);
-                        dest.put("file", destFile);
-                        dest.put("start", b.start);
-                        dest.put("end", b.end);
-                        dest.put("line", b.node.line);
-                        dest.put("col", b.node.col);
-                        dests.add(dest);
+                    List<Map<String, Object>> dests = new ArrayList<>();
+                    for (Binding b : e.getValue()) {
+                        String destFile = b.file;
+                        if (destFile != null /*&& destFile.startsWith(Analyzer.self.projectDir)*/) {
+                            destFile = _.projRelPath(destFile);
+                            Map<String, Object> dest = new LinkedHashMap<>();
+                            dest.put("name", b.node.name);
+                            dest.put("file", destFile);
+                            dest.put("start", b.start);
+                            dest.put("end", b.end);
+                            dest.put("line", b.node.line);
+                            dest.put("col", b.node.col);
+                            dests.add(dest);
+                        }
                     }
-                }
-                if (!dests.isEmpty()) {
-                    writeout.put("ref", ref);
-                    writeout.put("dests", dests);
-                    refs.add(writeout);
+                    if (!dests.isEmpty()) {
+                        writeout.put("ref", ref);
+                        writeout.put("dests", dests);
+                        refs.add(writeout);
+                    }
                 }
             }
         }

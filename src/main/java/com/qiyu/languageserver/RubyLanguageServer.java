@@ -192,14 +192,55 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       @Override
       public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         for (FileEvent f : params.getChanges()) {
-          String fileName = _.formatFileUri(f.getUri());
-          analyzer.removeReferencesByFileName(fileName);
+          String filename = _.formatFileUri(f.getUri());
+          analyzer.removeReferences(filename);
+          initPostions(filename);
           // client.logMessage(new MessageParams(MessageType.Log, "We received an file
           // change event" + f.getUri()));
-          analyzer.loadFileRecursive(fileName);
+          analyzer.loadFileRecursive(filename);
+          generatePositions(analyzer, filename);
         }
       }
     };
+  }
+
+  private void initPostions(String filename) {
+    positions.put(filename, new LinkedHashMap<>());
+  }
+
+  private void generatePositions(Analyzer analyzer, String filename) {
+    Map<Integer, Map<String, List<Map<String, Object>>>> fileRefs = positions.get(filename);
+    for (Map.Entry<Node, List<Binding>> e : analyzer.getReferences(filename).entrySet()) {
+
+      Node node = e.getKey();
+
+      Map<String, List<Map<String, Object>>> lineRefs;
+      if (!fileRefs.containsKey(node.line)) {
+        fileRefs.put(node.line, new LinkedHashMap<>());
+      }
+      lineRefs = fileRefs.get(node.line);
+
+      if (filename != null) {
+        String positionKey = node.col + "-" + (node.col + node.end - node.start);
+        List<Map<String, Object>> dests = new ArrayList<>();
+        for (Binding b : e.getValue()) {
+          String destFile = b.file;
+          if (destFile != null) {
+            Map<String, Object> dest = new LinkedHashMap<>();
+            dest.put("name", b.node.name);
+            dest.put("file", destFile);
+            dest.put("start", b.start);
+            dest.put("end", b.end);
+            dest.put("line", b.node.line);
+            dest.put("col", b.node.col);
+            dests.add(dest);
+          }
+        }
+        if (!dests.isEmpty()) {
+          lineRefs.put(positionKey, dests);
+        }
+      }
+    }
   }
 
   private void validateDocument(TextDocumentItem document) {

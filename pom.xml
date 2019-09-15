@@ -86,6 +86,10 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <excludes>
+                        <exclude>**/demos/*.java</exclude>
+                        <exclude>**/Test.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
