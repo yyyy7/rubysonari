@@ -4,7 +4,6 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -13,9 +12,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.yinwang.rubysonar.Analyzer;
-import org.yinwang.rubysonar.Binding;
-import org.yinwang.rubysonar._;
-import org.yinwang.rubysonar.ast.Node;
 
 /**
  * `TextDocumentService` that only supports `TextDocumentSyncKind.Full` updates.
@@ -43,40 +39,6 @@ class FullTextDocumentService implements TextDocumentService {
         analyzer = new Analyzer(options);
         analyzer.analyze(workspaceRoot);
         analyzer.getReferences();
-    }
-
-    public void generateRefs() {
-
-        for (Map.Entry<Node, List<Binding>> e : analyzer.references.entrySet()) {
-
-            Node node = e.getKey();
-            String file = node.file;
-
-            if (file != null && file.startsWith(Analyzer.self.projectDir)) {
-                file = _.projRelPath(file);
-
-                String positionKey = file + "-" + node.line + "-" + node.col;
-
-                List<Map<String, Object>> dests = new ArrayList<>();
-                for (Binding b : e.getValue()) {
-                    String destFile = b.file;
-                    if (destFile != null && destFile.startsWith(Analyzer.self.projectDir)) {
-                        destFile = _.projRelPath(destFile);
-                        Map<String, Object> dest = new LinkedHashMap<>();
-                        dest.put("name", b.node.name);
-                        dest.put("file", destFile);
-                        dest.put("start", b.start);
-                        dest.put("end", b.end);
-                        dest.put("line", b.node.line);
-                        dest.put("col", b.node.col);
-                        dests.add(dest);
-                    }
-                }
-                if (!dests.isEmpty()) {
-                    positions.put(positionKey, dests);
-                }
-            }
-        }
     }
 
     @Override

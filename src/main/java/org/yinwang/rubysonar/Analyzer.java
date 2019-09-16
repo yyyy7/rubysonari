@@ -18,7 +18,6 @@ import org.yinwang.rubysonar.types.Type;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -37,7 +36,7 @@ public class Analyzer implements Serializable {
     // global static instance of the analyzer itself
     public static Analyzer self;
 
-    public String sid = _.newSessionId();
+    public String sid = Utils.newSessionId();
     public String cwd = null;
     public int nCalled = 0;
 
@@ -100,8 +99,8 @@ public class Analyzer implements Serializable {
         //options.put("quiet", true);
         Analyzer analyzer = new Analyzer(options);
         
-        Analyzer gemsCache = Analyzer.deserialize();
         /*
+        Analyzer gemsCache = Analyzer.deserialize();
         if ( gemsCache == null) {
             analyzer.analyzeRails();
             Analyzer.serialize(analyzer);
@@ -128,14 +127,14 @@ public class Analyzer implements Serializable {
 
     private void copyModels() {
         URL resource = Thread.currentThread().getContextClassLoader().getResource(MODEL_LOCATION);
-        String dest = _.locateTmp("models");
+        String dest = Utils.locateTmp("models");
         this.modelDir = dest;
 
         try {
-            _.copyResourcesRecursively(resource, new File(dest));
-            _.msg("copied models to: " + modelDir);
+            Utils.copyResourcesRecursively(resource, new File(dest));
+            Utils.msg("copied models to: " + modelDir);
         } catch (Exception e) {
-            _.die("Failed to copy models. Please check permissions of writing to: " + dest);
+            Utils.die("Failed to copy models. Please check permissions of writing to: " + dest);
         }
         addPath(dest);
     }
@@ -143,7 +142,7 @@ public class Analyzer implements Serializable {
 
     // main entry to the analyzer
     public void analyze(String path) {
-        String upath = _.unifyPath(path);
+        String upath = Utils.unifyPath(path);
         File f = new File(upath);
         projectDir = f.isDirectory() ? f.getPath() : f.getParent();
         loadFileRecursive(upath);
@@ -158,17 +157,17 @@ public class Analyzer implements Serializable {
     }
 
     public void analyzeRails() {
-        projectDir = _.gemsPath;
-        for (String p : _.getRailsPath()) {
+        projectDir = Utils.gemsPath;
+        for (String p : Utils.getRailsPath()) {
             if (p == null) continue;
-            loadFileRecursive(_.unifyPath(p)); 
+            loadFileRecursive(Utils.unifyPath(p)); 
         }
     }
 
 
     public void setCWD(String cd) {
         if (cd != null) {
-            cwd = _.unifyPath(cd);
+            cwd = Utils.unifyPath(cd);
         }
     }
 
@@ -181,7 +180,7 @@ public class Analyzer implements Serializable {
 
 
     public void addPath(String p) {
-        path.add(_.unifyPath(p));
+        path.add(Utils.unifyPath(p));
     }
 
 
@@ -207,7 +206,7 @@ public class Analyzer implements Serializable {
         List<String> loadPath = new ArrayList<>();
         loadPath.addAll(path);
         //loadPath.add("/Users/yinwang/.rvm/src/ruby-2.0.0-p247/lib");
-        //if (!_.gemsPath.isEmpty()) loadPath.add(_.gemsPath);
+        //if (!Utils.gemsPath.isEmpty()) loadPath.add(Utils.gemsPath);
 
         if (cwd != null) {
             loadPath.add(cwd);
@@ -338,7 +337,7 @@ public class Analyzer implements Serializable {
     @Nullable
     public Type loadFile(String path) {
         //if (loadedFiles.contains(path)) return null;
-        path = _.unifyPath(path);
+        path = Utils.unifyPath(path);
         File f = new File(path);
 
         if (!f.canRead()) {
@@ -368,7 +367,7 @@ public class Analyzer implements Serializable {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
-            _.msg("parsing " + file + ".............");
+            Utils.msg("parsing " + file + ".............");
             Node ast = getAstForFile(file);
 
             if (ast == null) {
@@ -389,10 +388,10 @@ public class Analyzer implements Serializable {
             }
             System.gc();
             if(e instanceof OutOfMemoryError) {
-                _.msg("Skiping for memory size limit: " + file);
+                Utils.msg("Skiping for memory size limit: " + file);
             }
             if(e instanceof StackOverflowError) {
-                _.msg("Skiping for stack size limit: " + file);
+                Utils.msg("Skiping for stack size limit: " + file);
             }
             return null;
         }
@@ -400,13 +399,13 @@ public class Analyzer implements Serializable {
 
 
     private void createCacheDir() {
-        cacheDir = _.makePathString(_.getSystemTempDir(), "rubysonar", "ast_cache");
+        cacheDir = Utils.makePathString(Utils.getSystemTempDir(), "rubysonar", "ast_cache");
         File f = new File(cacheDir);
-        _.msg("AST cache is at: " + cacheDir);
+        Utils.msg("AST cache is at: " + cacheDir);
 
         if (!f.exists()) {
             if (!f.mkdirs()) {
-                _.die("Failed to create tmp directory: " + cacheDir +
+                Utils.die("Failed to create tmp directory: " + cacheDir +
                         ".Please check permissions");
             }
         }
@@ -438,7 +437,7 @@ public class Analyzer implements Serializable {
                 return loadFile(targetFiles.getFirst().getPath());
             //Type t =  requireFileRecursive(p, headName);
             //if (t != null) return t;
-        //    String trial = _.makePathString(p, headName + suffix);
+        //    String trial = Utils.makePathString(p, headName + suffix);
         //    if (new File(trial).exists()) {
         //        return loadFile(trial);
         //    }
@@ -452,7 +451,7 @@ public class Analyzer implements Serializable {
     }
 
     public Type requireFileRecursive(String path, String baseName) {
-        String trial = _.makePathString(path, baseName + suffix);
+        String trial = Utils.makePathString(path, baseName + suffix);
         if (new File(trial).exists()) return loadFile(trial);
 
         File file_or_dir = new File(path);
@@ -515,8 +514,8 @@ public class Analyzer implements Serializable {
 
 
     public void finish() {
-        _.msg("\nFinished loading files. " + nCalled + " functions were called.");
-        _.msg("Analyzing uncalled functions");
+        Utils.msg("\nFinished loading files. " + nCalled + " functions were called.");
+        Utils.msg("Analyzing uncalled functions");
         applyUncalled();
 
         // mark unused variables
@@ -530,7 +529,7 @@ public class Analyzer implements Serializable {
             }
         }
 
-        _.msg(getAnalysisSummary());
+        Utils.msg(getAnalysisSummary());
     }
 
 
@@ -568,9 +567,9 @@ public class Analyzer implements Serializable {
     @NotNull
     public String getAnalysisSummary() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n" + _.banner("analysis summary"));
+        sb.append("\n" + Utils.banner("analysis summary"));
 
-        String duration = _.formatTime(System.currentTimeMillis() - stats.getInt("startTime"));
+        String duration = Utils.formatTime(System.currentTimeMillis() - stats.getInt("startTime"));
         sb.append("\n- total time: " + duration);
         sb.append("\n- modules loaded: " + loadedFiles.size());
         sb.append("\n- semantic problems: " + semanticErrors.size());
@@ -591,8 +590,8 @@ public class Analyzer implements Serializable {
         long nUnresolved = this.unresolved.size();
         sb.append("\n- resolved names: " + nResolved);
         sb.append("\n- unresolved names: " + nUnresolved);
-        sb.append("\n- name resolve rate: " + _.percent(nResolved, nResolved + nUnresolved));
-        sb.append("\n" + _.getGCStats());
+        sb.append("\n- name resolve rate: " + Utils.percent(nResolved, nResolved + nUnresolved));
+        sb.append("\n" + Utils.getGCStats());
 
         return sb.toString();
     }
@@ -647,8 +646,8 @@ public class Analyzer implements Serializable {
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(analyzer);
         } catch (Exception e) {
-            _.msg(e.getMessage());
-            _.die("serialize error");
+            Utils.msg(e.getMessage());
+            Utils.die("serialize error");
         }
     }
 
@@ -657,8 +656,8 @@ public class Analyzer implements Serializable {
              ObjectInputStream ois = new ObjectInputStream(fis)) {
             return (Analyzer)ois.readObject();
         } catch (Exception e) {
-            _.msg(e.getMessage());
-            //_.die("deserialize error");
+            Utils.msg(e.getMessage());
+            //Utils.die("deserialize error");
             return null;
         }
     }

@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.yinwang.rubysonar.Analyzer;
 import org.yinwang.rubysonar.Binding;
 import org.yinwang.rubysonar.State;
-import org.yinwang.rubysonar._;
+import org.yinwang.rubysonar.Utils;
 import org.yinwang.rubysonar.types.ClassType;
 import org.yinwang.rubysonar.types.FunType;
 import org.yinwang.rubysonar.types.ModuleType;
@@ -141,7 +141,7 @@ public class Function extends Node {
             argList.add("&" + blockarg.toDisplay());
         }
 
-        return _.joinWithSep(argList, ",", null, null);
+        return Utils.joinWithSep(argList, ",", null, null);
     }
 
 

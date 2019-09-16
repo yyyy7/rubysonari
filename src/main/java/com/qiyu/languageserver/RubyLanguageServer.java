@@ -7,7 +7,7 @@ import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.yinwang.rubysonar.Binding;
-import org.yinwang.rubysonar._;
+import org.yinwang.rubysonar.Utils;
 import org.yinwang.rubysonar.ast.Node;
 import org.yinwang.rubysonar.Analyzer;
 
@@ -30,10 +30,10 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-    _.msg(params.toString());
+    Utils.msg(params.toString());
     workspaceRoot = params.getRootUri();
     if (workspaceRoot == null || workspaceRoot == "") {
-      _.die("got null workspaceRoot");
+      Utils.die("got null workspaceRoot");
     }
 
     positions = new LinkedHashMap<>();
@@ -71,7 +71,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
         if (file != null) {
           String positionKey = node.col + "-" + (node.col + node.end - node.start);
-          // _.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
+          // Utils.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
           // node.end + " start: " + node.start);
 
           List<Map<String, Object>> dests = new ArrayList<>();
@@ -93,7 +93,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
           }
 
           // Map<String, Object> v = dests.get(0);
-          // _.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " +
+          // Utils.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " +
           // String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"),
           // v.get("line"), v.get("col")));
         }
@@ -125,8 +125,8 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       String positionKey = uri;
       /*
        * for (Entry<String, List<Map<String, Object>>> e :
-       * RubyLanguageServer.positions.entrySet()) { _.msg("------Key: "+ e.getKey());
-       * Map<String, Object> value = e.getValue().get(0); _.msg("------Value: " +
+       * RubyLanguageServer.positions.entrySet()) { Utils.msg("------Key: "+ e.getKey());
+       * Map<String, Object> value = e.getValue().get(0); Utils.msg("------Value: " +
        * value.get("name") + " " + value.get("file") + " " + value.get("line") + " " +
        * value.get("col")); }
        */
@@ -134,16 +134,16 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       Map<String, List<Map<String, Object>>> lineRefs = Optional.ofNullable(RubyLanguageServer.positions.get(uri))
           .map(h -> h.get(line)).orElse(Collections.emptyMap());
       for (Entry<String, List<Map<String, Object>>> r : lineRefs.entrySet()) {
-        _.msg(r.getKey());
+        Utils.msg(r.getKey());
         Map<String, Object> v = r.getValue().get(0);
-        _.msg(String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
+        Utils.msg(String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"), v.get("line"), v.get("col")));
 
         String[] colRange = r.getKey().split("-");
         if (Integer.parseInt(colRange[0]) <= col && Integer.parseInt(colRange[1]) >= col) {
           dests = r.getValue();
         }
       }
-      _.msg("======：" + position.toString());
+      Utils.msg("======：" + position.toString());
       Range r;
       String targetFile = uri;
       List<Location> locations = new ArrayList<>();
@@ -160,7 +160,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
         }
       }
       // Location l = new Location("file://" + targetFile, r);
-      // _.msg(l.toString());
+      // Utils.msg(l.toString());
       return CompletableFuture.completedFuture(locations);
     }
   };
@@ -192,7 +192,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       @Override
       public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         for (FileEvent f : params.getChanges()) {
-          String filename = _.formatFileUri(f.getUri());
+          String filename = Utils.formatFileUri(f.getUri());
           analyzer.removeReferences(filename);
           initPostions(filename);
           // client.logMessage(new MessageParams(MessageType.Log, "We received an file

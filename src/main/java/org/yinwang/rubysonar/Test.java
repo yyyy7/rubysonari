@@ -9,6 +9,8 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.jetbrains.annotations.NotNull;
 import org.yinwang.rubysonar.ast.Dummy;
 import org.yinwang.rubysonar.ast.Node;
+import org.yinwang.rubysonar.Utils;
+import org.yinwang.rubysonar.Analyzer;
 
 import java.io.File;
 import java.util.*;
@@ -33,13 +35,13 @@ public class Test {
         this.inputDir = inputDir;
         this.exp = exp;
         if (new File(inputDir).isDirectory()) {
-            expecteRefsFile = _.makePathString(inputDir, "refs.json");
-            failedRefsFile = _.makePathString(inputDir, "failed_refs.json");
-            extraRefsFile = _.makePathString(inputDir, "extra_refs.json");
+            expecteRefsFile = Utils.makePathString(inputDir, "refs.json");
+            failedRefsFile = Utils.makePathString(inputDir, "failed_refs.json");
+            extraRefsFile = Utils.makePathString(inputDir, "extra_refs.json");
         } else {
-            expecteRefsFile = _.makePathString(inputDir + ".refs.json");
-            failedRefsFile = _.makePathString(inputDir, ".failed_refs.json");
-            extraRefsFile = _.makePathString(inputDir, ".extra_refs.json");
+            expecteRefsFile = Utils.makePathString(inputDir + ".refs.json");
+            failedRefsFile = Utils.makePathString(inputDir, ".failed_refs.json");
+            extraRefsFile = Utils.makePathString(inputDir, ".extra_refs.json");
         }
     }
 
@@ -65,12 +67,12 @@ public class Test {
 
         List<Map<String, Object>> refs = new ArrayList<>();
         for (Map.Entry<String, Map<Node, List<Binding>>> ee : analyzer.getReferences().entrySet()) {
-            String file = e.getKey().file;
+            String file = ee.getKey();
 
             for (Map.Entry<Node, List<Binding>> e : ee.getValue().entrySet()) {
                 // only record those in the inputDir
                 if (file != null  /*file.startsWith(Analyzer.self.projectDir)*/) {
-                    file = _.projRelPath(file);
+                    file = Utils.projRelPath(file);
                     Map<String, Object> writeout = new LinkedHashMap<>();
 
                     Map<String, Object> ref = new LinkedHashMap<>();
@@ -85,7 +87,7 @@ public class Test {
                     for (Binding b : e.getValue()) {
                         String destFile = b.file;
                         if (destFile != null /*&& destFile.startsWith(Analyzer.self.projectDir)*/) {
-                            destFile = _.projRelPath(destFile);
+                            destFile = Utils.projRelPath(destFile);
                             Map<String, Object> dest = new LinkedHashMap<>();
                             dest.put("name", b.node.name);
                             dest.put("file", destFile);
@@ -106,16 +108,17 @@ public class Test {
         }
 
         String json = gson.toJson(refs);
-        _.writeFile(expecteRefsFile, json);
+        Utils.writeFile(expecteRefsFile, json);
     }
 
 
+    /*
     public boolean checkRefs() {
         List<Map<String, Object>> failedRefs = new ArrayList<>();
         List<Map<String, Object>> extraRefs = new ArrayList<>();
-        String json = _.readFile(expecteRefsFile);
+        String json = Utils.readFile(expecteRefsFile);
         if (json == null) {
-            _.msg("Expected refs not found in: " + expecteRefsFile +
+            Utils.msg("Expected refs not found in: " + expecteRefsFile +
                     "Please run Test with -exp to generate");
             return false;
         }
@@ -131,7 +134,7 @@ public class Test {
 
             for (Map<String, Object> d : dests) {
                 // names are ignored, they are only for human readers
-                String file = _.projAbsPath((String) d.get("file"));
+                String file = Utils.projAbsPath((String) d.get("file"));
                 int start = (int) Math.floor((double) d.get("start"));
                 int end = (int) Math.floor((double) d.get("end"));
 
@@ -146,7 +149,7 @@ public class Test {
                 for (Binding b : actualDests) {
                     String destFile = b.file;
                     if (destFile != null && destFile.startsWith(Analyzer.self.projectDir)) {
-                        destFile = _.projRelPath(destFile);
+                        destFile = Utils.projRelPath(destFile);
                         Map<String, Object> d1 = new LinkedHashMap<>();
                         d1.put("file", destFile);
                         d1.put("start", b.start);
@@ -174,25 +177,25 @@ public class Test {
 
         if (!failedRefs.isEmpty()) {
             String failedJson = gson.toJson(failedRefs);
-            _.testmsg("failed to find refs: " + failedJson);
-            _.writeFile(failedRefsFile, failedJson);
+            Utils.testmsg("failed to find refs: " + failedJson);
+            Utils.writeFile(failedRefsFile, failedJson);
         }
 
         if (!extraRefs.isEmpty()) {
             String extraJson = gson.toJson(extraRefs);
-            _.testmsg("found extra refs: " + extraJson);
-            _.writeFile(extraRefsFile, extraJson);
+            Utils.testmsg("found extra refs: " + extraJson);
+            Utils.writeFile(extraRefsFile, extraJson);
         }
 
         return failedRefs.isEmpty() && extraRefs.isEmpty();
-    }
+    }*/
 
 
     boolean checkBindingExist(@NotNull List<Binding> bs, String file, int start, int end, int line, int col) {
         Iterator<Binding> iter = bs.iterator();
         while (iter.hasNext()) {
             Binding b = iter.next();
-            if (_.same(b.file, file) &&
+            if (Utils.same(b.file, file) &&
                     b.start == start &&
                     b.end == end)
             {
@@ -206,7 +209,7 @@ public class Test {
 
 
     public static Dummy makeDummy(Map<String, Object> m) {
-        String file = _.projAbsPath((String) m.get("file"));
+        String file = Utils.projAbsPath((String) m.get("file"));
         int start = (int) Math.floor((double) m.get("start"));
         int end = (int) Math.floor((double) m.get("end"));
         return new Dummy(file, start, end, 1, 1);
@@ -216,14 +219,15 @@ public class Test {
     public void generateTest() {
         runAnalysis(inputDir);
         generateRefs();
-        _.testmsg("  * " + inputDir);
+        Utils.testmsg("  * " + inputDir);
     }
 
 
     public boolean runTest() {
         runAnalysis(inputDir);
-        _.testmsg("  * " + inputDir);
-        return checkRefs();
+        Utils.testmsg("  * " + inputDir);
+        //return checkRefs();
+        return false;
     }
 
 
@@ -233,21 +237,21 @@ public class Test {
     public static void testAll(String path, boolean exp) {
         List<String> failed = new ArrayList<>();
         if (exp) {
-            _.testmsg("generating tests");
+            Utils.testmsg("generating tests");
         } else {
-            _.testmsg("verifying tests");
+            Utils.testmsg("verifying tests");
         }
 
         testRecursive(path, exp, failed);
 
         if (exp) {
-            _.testmsg("all tests generated");
+            Utils.testmsg("all tests generated");
         } else if (failed.isEmpty()) {
-            _.testmsg("all tests passed!");
+            Utils.testmsg("all tests passed!");
         } else {
-            _.testmsg("failed some tests: ");
+            Utils.testmsg("failed some tests: ");
             for (String f : failed) {
-                _.testmsg("  * " + f);
+                Utils.testmsg("  * " + f);
             }
         }
     }
@@ -278,7 +282,7 @@ public class Test {
     public static void main(String[] args) {
         Options options = new Options(args);
         List<String> argList = options.getArgs();
-        String inputDir = _.unifyPath(argList.get(0));
+        String inputDir = Utils.unifyPath(argList.get(0));
 
         // generate expected file?
         boolean exp = options.hasOption("exp");

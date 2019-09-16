@@ -2,7 +2,7 @@ package org.yinwang.rubysonar.demos;
 
 import org.jetbrains.annotations.NotNull;
 import org.yinwang.rubysonar.Analyzer;
-import org.yinwang.rubysonar._;
+import org.yinwang.rubysonar.Utils;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -73,7 +73,7 @@ class StyleApplier {
                         buffer.append("<a name='" + style.url + "'");
                         buffer.append(", id ='" + style.id + "'");
                         if (style.highlight != null && !style.highlight.isEmpty()) {
-                            String ids = _.joinWithSep(style.highlight, "\",\"", "\"", "\"");
+                            String ids = Utils.joinWithSep(style.highlight, "\",\"", "\"", "\"");
                             buffer.append(", onmouseover='highlight(").append(ids).append(")'");
                         }
                         break;
@@ -81,7 +81,7 @@ class StyleApplier {
                         buffer.append("<a href='" + style.url + "'");
                         buffer.append(", id ='" + style.id + "'");
                         if (style.highlight != null && !style.highlight.isEmpty()) {
-                            String ids = _.joinWithSep(style.highlight, "\",\"", "\"", "\"");
+                            String ids = Utils.joinWithSep(style.highlight, "\",\"", "\"", "\"");
                             buffer.append(", onmouseover='highlight(").append(ids).append(")'");
                         }
                         break;

@@ -1,6 +1,6 @@
 package org.yinwang.rubysonar.ast;
 
-import org.yinwang.rubysonar._;
+import org.yinwang.rubysonar.Utils;
 
 
 public enum Op {
@@ -68,7 +68,7 @@ public enum Op {
             return Op.And;
         }
 
-        _.die("invalid operator name for invert: " + op);
+        Utils.die("invalid operator name for invert: " + op);
         return null;  // unreacheable
     }
 

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -15,9 +14,7 @@ public class App {
   public static void main(String[] args) {
     String port = args[0];
 
-    try {
-      
-      Socket socket = new Socket("localhost", Integer.parseInt(port));
+    try (Socket socket = new Socket("localhost", Integer.parseInt(port))) {
       InputStream in = socket.getInputStream();
       OutputStream out = socket.getOutputStream();
 

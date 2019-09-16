@@ -24,7 +24,7 @@ public class Moduler extends Node {
         } else if (locator instanceof Name) {
             this.name = (Name) locator;
         } else {
-            _.die("illegal module locator: " + locator);
+            Utils.die("illegal module locator: " + locator);
         }
         addChildren(locator, body);
     }

@@ -211,7 +211,7 @@ public class JSONDump {
         try {
             symOut = new BufferedOutputStream(new FileOutputStream(outroot + "-sym"));
             refOut = new BufferedOutputStream(new FileOutputStream(outroot + "-ref"));
-            _.msg("graphing: " + srcpath);
+            Utils.msg("graphing: " + srcpath);
             graph(projectDir, srcpath, inclpaths, symOut, refOut);
             symOut.flush();
             refOut.flush();

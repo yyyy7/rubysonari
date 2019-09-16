@@ -56,7 +56,7 @@ public class AstCache {
      */
     public boolean clearDiskCache() {
         try {
-            _.deleteDirectory(new File(Analyzer.self.cacheDir));
+            Utils.deleteDirectory(new File(Analyzer.self.cacheDir));
             return true;
         } catch (Exception x) {
             LOG.log(Level.SEVERE, "Failed to clear disk cache: " + x);
@@ -116,19 +116,19 @@ public class AstCache {
      */
     @NotNull
     public String getCachePath(@NotNull String sourcePath) {
-        return getCachePath(_.getSHA(sourcePath), sourcePath);
+        return getCachePath(Utils.getSHA(sourcePath), sourcePath);
     }
 
 
     @NotNull
     public String getCachePath(String md5, String name) {
-        return _.makePathString(Analyzer.self.cacheDir, name + md5 + ".ast");
+        return Utils.makePathString(Analyzer.self.cacheDir, name + md5 + ".ast");
     }
 
 
     // package-private for testing
     void serialize(@NotNull Node ast) {
-        String path = getCachePath(_.getSHA(ast.file), new File(ast.file).getName());
+        String path = getCachePath(Utils.getSHA(ast.file), new File(ast.file).getName());
         ObjectOutputStream oos = null;
         FileOutputStream fos = null;
         try {
@@ -136,7 +136,7 @@ public class AstCache {
             oos = new ObjectOutputStream(fos);
             oos.writeObject(ast);
         } catch (Exception e) {
-            _.msg("Failed to serialize: " + path);
+            Utils.msg("Failed to serialize: " + path);
         } finally {
             try {
                 if (oos != null) {

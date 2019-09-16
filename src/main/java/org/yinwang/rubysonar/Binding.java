@@ -195,7 +195,7 @@ public class Binding implements Comparable<Object>, Serializable {
             Binding b = (Binding) obj;
             return (start == b.start &&
                     end == b.end &&
-                    _.same(file, b.file));
+                    Utils.same(file, b.file));
         }
     }
 

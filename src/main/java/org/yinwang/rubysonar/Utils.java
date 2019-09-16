@@ -5,7 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.net.www.protocol.file.FileURLConnection;
+//import sun.net.www.protocol.file.FileURLConnection;
 
 import java.io.*;
 import java.lang.management.GarbageCollectorMXBean;
@@ -19,14 +19,13 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 
 /**
  * unsorted utility class
  */
-public class _ {
+public class Utils {
 
     public static final Charset UTF_8 = Charset.forName("UTF-8");
     public static String gemsPath = getGemsPath() + "/" + "gems"; 
@@ -132,7 +131,7 @@ public class _ {
             out.print(contents);
             out.flush();
         } catch (Exception e) {
-            _.die("Failed to write: " + path);
+            Utils.die("Failed to write: " + path);
         } finally {
             if (out != null) {
                 out.close();
@@ -187,8 +186,8 @@ public class _ {
         URLConnection urlConnection = originUrl.openConnection();
         if (urlConnection instanceof JarURLConnection) {
             copyJarResourcesRecursively(destination, (JarURLConnection) urlConnection);
-        } else if (urlConnection instanceof FileURLConnection) {
-            FileUtils.copyDirectory(new File(originUrl.getPath()), destination);
+        //} else if (urlConnection instanceof FileURLConnection) {
+        //    FileUtils.copyDirectory(new File(originUrl.getPath()), destination);
         } else {
             die("Unsupported URL type: " + urlConnection);
         }
@@ -200,7 +199,7 @@ public class _ {
         try {
             jarFile = jarConnection.getJarFile();
         } catch (Exception e) {
-            _.die("Failed to get jar file)");
+            Utils.die("Failed to get jar file)");
             return;
         }
 
@@ -250,7 +249,7 @@ public class _ {
         try {
             algorithm = MessageDigest.getInstance("SHA-1");
         } catch (Exception e) {
-            _.die("Failed to get SHA, shouldn't happen");
+            Utils.die("Failed to get SHA, shouldn't happen");
             return "";
         }
 
@@ -576,7 +575,7 @@ public class _ {
         sb.append("\n- total collection time: " + formatTime(gcTime));
 
         Runtime runtime = Runtime.getRuntime();
-        sb.append("\n- total memory: " + _.printMem(runtime.totalMemory()));
+        sb.append("\n- total memory: " + Utils.printMem(runtime.totalMemory()));
 
         return sb.toString();
     }

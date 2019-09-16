@@ -36,14 +36,14 @@ public class Parser {
 
 
     public Parser() {
-        exchangeFile = _.locateTmp("json");
-        endMark = _.locateTmp("end");
-        jsonizer = _.locateTmp("dump_ruby");
-        parserLog = _.locateTmp("parser_log");
+        exchangeFile = Utils.locateTmp("json");
+        endMark = Utils.locateTmp("end");
+        jsonizer = Utils.locateTmp("dump_ruby");
+        parserLog = Utils.locateTmp("parser_log");
 
         startRubyProcesses();
         if (rubyProcess != null) {
-            _.msg("started: " + RUBY_EXE);
+            Utils.msg("started: " + RUBY_EXE);
         }
     }
 
@@ -57,7 +57,7 @@ public class Parser {
         rubyProcess = startInterpreter(RUBY_EXE);
 
         if (rubyProcess == null) {
-            _.die("You don't seem to have ruby on PATH");
+            Utils.die("You don't seem to have ruby on PATH");
         }
     }
 
@@ -451,7 +451,7 @@ public class Parser {
             return new RbFloat(n, file, start,end, line, col);
         }
 
-        _.die("[please report parser bug]: unexpected ast node: " + type);
+        Utils.die("[please report parser bug]: unexpected ast node: " + type);
         return null;
     }
 
@@ -466,7 +466,7 @@ public class Parser {
 
             for (Object x : (List) in) {
                 if (!(x instanceof Map)) {
-                    _.die("not a map: " + x);
+                    Utils.die("not a map: " + x);
                 }
             }
 
@@ -588,7 +588,7 @@ public class Parser {
             return Op.Defined;
         }
 
-        _.die("illegal operator: " + name);
+        Utils.die("illegal operator: " + name);
         return null;
     }
 
@@ -609,9 +609,9 @@ public class Parser {
                     Thread.currentThread()
                             .getContextClassLoader()
                             .getResourceAsStream(dumpRubyResource);
-            jsonizeStr = _.readWholeStream(jsonize);
+            jsonizeStr = Utils.readWholeStream(jsonize);
         } catch (Exception e) {
-            _.die("Failed to open resource file:" + dumpRubyResource);
+            Utils.die("Failed to open resource file:" + dumpRubyResource);
             return null;
         }
 
@@ -620,7 +620,7 @@ public class Parser {
             fw.write(jsonizeStr);
             fw.close();
         } catch (Exception e) {
-            _.die("Failed to write into: " + jsonizer);
+            Utils.die("Failed to write into: " + jsonizer);
             return null;
         }
 
@@ -638,13 +638,13 @@ public class Parser {
             builder.environment().remove("RUBYLIB");
             p = builder.start();
         } catch (Exception e) {
-            _.msg(e.getMessage());
-            _.die("Failed to start irb");
+            Utils.msg(e.getMessage());
+            Utils.die("Failed to start irb");
             return null;
         }
 
         if (!sendCommand("load '" + jsonizer + "'", p)) {
-            _.die("Failed to load jsonizer, please report bug");
+            Utils.die("Failed to load jsonizer, please report bug");
             p.destroy();
             return null;
         }
@@ -660,7 +660,7 @@ public class Parser {
         if (node != null) {
             return node;
         } else {
-//            _.msg("failed to parse: " + filename);
+//            Utils.msg("failed to parse: " + filename);
 
             Analyzer.self.failedToParse.add(filename);
             return null;
@@ -670,13 +670,13 @@ public class Parser {
 
     @Nullable
     public Node parseFileInner(String filename, @NotNull Process rubyProcess) {
-//        _.msg("parsing: " + filename);
+//        Utils.msg("parsing: " + filename);
 
         cleanTemp();
 
-        String s1 = _.escapeWindowsPath(filename);
-        String s2 = _.escapeWindowsPath(exchangeFile);
-        String s3 = _.escapeWindowsPath(endMark);
+        String s1 = Utils.escapeWindowsPath(filename);
+        String s2 = Utils.escapeWindowsPath(exchangeFile);
+        String s3 = Utils.escapeWindowsPath(endMark);
         String dumpCommand = "parse_dump('" + s1 + "', '" + s2 + "', '" + s3 + "')";
 
         if (!sendCommand(dumpCommand, rubyProcess)) {
@@ -689,7 +689,7 @@ public class Parser {
 
         while (!marker.exists()) {
             if (System.currentTimeMillis() - waitStart > TIMEOUT) {
-                _.msg("\nTimed out while parsing: " + filename);
+                Utils.msg("\nTimed out while parsing: " + filename);
                 cleanTemp();
                 startRubyProcesses();
                 return null;
@@ -705,7 +705,7 @@ public class Parser {
 
         String json;
         try {
-            json = _.readFile(exchangeFile);
+            json = Utils.readFile(exchangeFile);
         } catch (Exception e) {
             cleanTemp();
             return null;
@@ -726,7 +726,7 @@ public class Parser {
             writer.flush();
             return true;
         } catch (Exception e) {
-            _.msg("\nFailed to send command to Ruby interpreter: " + cmd);
+            Utils.msg("\nFailed to send command to Ruby interpreter: " + cmd);
             return false;
         }
     }

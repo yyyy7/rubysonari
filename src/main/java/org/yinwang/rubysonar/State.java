@@ -485,7 +485,7 @@ public class State implements Serializable{
 
     @NotNull
     public String extendPath(@NotNull String name, String sep) {
-        name = _.mainName(name);
+        name = Utils.mainName(name);
         if (Name.isSyntheticName(name)) {
             return path;
         } else if (path.equals("")) {

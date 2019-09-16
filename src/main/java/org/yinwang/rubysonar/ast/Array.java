@@ -10,6 +10,10 @@ import java.util.List;
 
 public class Array extends Node {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     @NotNull
     public List<Node> elts;
 

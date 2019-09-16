@@ -5,7 +5,7 @@ import org.yinwang.rubysonar.Analyzer;
 import org.yinwang.rubysonar.Binding;
 import org.yinwang.rubysonar.Constants;
 import org.yinwang.rubysonar.State;
-import org.yinwang.rubysonar._;
+import org.yinwang.rubysonar.Utils;
 import org.yinwang.rubysonar.types.Type;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public class Name extends Node {
     @Override
     public Type transform(@NotNull State s) {
         List<Binding> b;
-        if (Analyzer.self.projectDir != _.gemsPath && this.file.startsWith(Analyzer.self.projectDir) && isConst()) Analyzer.self.autoLoadModule(this.id);
+        if (Analyzer.self.projectDir != Utils.gemsPath && this.file.startsWith(Analyzer.self.projectDir) && isConst()) Analyzer.self.autoLoadModule(this.id);
 
         if (Analyzer.self.staticContext) {
             b = s.lookupTagged(id, "class");
