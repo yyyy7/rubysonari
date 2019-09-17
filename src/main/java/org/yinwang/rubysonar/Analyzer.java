@@ -96,7 +96,7 @@ public class Analyzer implements Serializable {
 
     public static Analyzer newCachedInstance() {
         Map<String, Object> options = new HashMap<>();
-        //options.put("quiet", true);
+        options.put("quiet", true);
         Analyzer analyzer = new Analyzer(options);
         
         /*
@@ -367,7 +367,7 @@ public class Analyzer implements Serializable {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
-            Utils.msg("parsing " + file + ".............");
+            //Utils.msg("parsing " + file + ".............");
             Node ast = getAstForFile(file);
 
             if (ast == null) {
@@ -664,6 +664,10 @@ public class Analyzer implements Serializable {
 
     public void removeReferences(String fileName) {
         references.remove(fileName);
+    }
+
+    public void removeAstCache(String filename) {
+        getAstCache().remove(filename);
     }
 
 

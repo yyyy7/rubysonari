@@ -125,6 +125,9 @@ public class AstCache {
         return Utils.makePathString(Analyzer.self.cacheDir, name + md5 + ".ast");
     }
 
+    public void remove(String filename) {
+        cache.remove(filename);
+    }
 
     // package-private for testing
     void serialize(@NotNull Node ast) {

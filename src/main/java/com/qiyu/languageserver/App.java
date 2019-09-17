@@ -14,7 +14,8 @@ public class App {
   public static void main(String[] args) {
     String port = args[0];
 
-    try (Socket socket = new Socket("localhost", Integer.parseInt(port))) {
+    try {
+      Socket socket = new Socket("localhost", Integer.parseInt(port));
       InputStream in = socket.getInputStream();
       OutputStream out = socket.getOutputStream();
 

@@ -194,6 +194,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
         for (FileEvent f : params.getChanges()) {
           String filename = Utils.formatFileUri(f.getUri());
           analyzer.removeReferences(filename);
+          analyzer.removeAstCache(filename);
           initPostions(filename);
           // client.logMessage(new MessageParams(MessageType.Log, "We received an file
           // change event" + f.getUri()));
