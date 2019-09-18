@@ -191,16 +191,20 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
       @Override
       public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+        List<String> files = new ArrayList<>();
         for (FileEvent f : params.getChanges()) {
           String filename = Utils.formatFileUri(f.getUri());
+          files.add(filename);
+          
           analyzer.removeReferences(filename);
           analyzer.removeAstCache(filename);
           initPostions(filename);
           // client.logMessage(new MessageParams(MessageType.Log, "We received an file
           // change event" + f.getUri()));
-          analyzer.loadFileRecursive(filename);
-          generatePositions(analyzer, filename);
+          analyzer.loadFile(filename);
         }
+        analyzer.applyUncalled();
+        generatePositions(files);
       }
     };
   }
@@ -209,7 +213,11 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     positions.put(filename, new LinkedHashMap<>());
   }
 
-  private void generatePositions(Analyzer analyzer, String filename) {
+  private void generatePositions(List<String> files) {
+    files.stream().forEach(file -> generatePositions(file));
+  }
+
+  private void generatePositions(String filename) {
     Map<Integer, Map<String, List<Map<String, Object>>>> fileRefs = positions.get(filename);
     for (Map.Entry<Node, List<Binding>> e : analyzer.getReferences(filename).entrySet()) {
 
