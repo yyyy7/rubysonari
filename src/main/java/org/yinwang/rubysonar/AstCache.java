@@ -8,6 +8,8 @@ import org.yinwang.rubysonar.ast.Node;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,12 +25,13 @@ public class AstCache {
     private static AstCache INSTANCE;
 
     @NotNull
-    private Map<String, Node> cache = new HashMap<>();
+    private ConcurrentMap<String, Node> cache = new ConcurrentHashMap<>();
     @NotNull
     private static Parser parser;
 
 
     private AstCache() {
+        parser = new Parser();
     }
 
 
@@ -36,7 +39,6 @@ public class AstCache {
         if (INSTANCE == null) {
             INSTANCE = new AstCache();
         }
-        parser = new Parser();
         return INSTANCE;
     }
 
