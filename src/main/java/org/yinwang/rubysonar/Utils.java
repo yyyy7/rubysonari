@@ -1,25 +1,36 @@
 package org.yinwang.rubysonar;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-//import sun.net.www.protocol.file.FileURLConnection;
-
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import sun.net.www.protocol.file.FileURLConnection;
+//import sun.net.www.protocol.file.FileURLConnection;
 
 
 /**
@@ -60,6 +71,9 @@ public class Utils {
 
     public static List<String> getRailsPath() {
         File gems = new File(gemsPath);
+        if (!gems.exists()) {
+            return Collections.emptyList();
+        }
         return railsFiles.stream().map(f -> getRailsModulePath(gems, f))
                                   .filter(f -> f != null)
                                   .collect(Collectors.toList());
@@ -186,8 +200,8 @@ public class Utils {
         URLConnection urlConnection = originUrl.openConnection();
         if (urlConnection instanceof JarURLConnection) {
             copyJarResourcesRecursively(destination, (JarURLConnection) urlConnection);
-        //} else if (urlConnection instanceof FileURLConnection) {
-        //    FileUtils.copyDirectory(new File(originUrl.getPath()), destination);
+        } else if (urlConnection instanceof FileURLConnection) {
+            FileUtils.copyDirectory(new File(originUrl.getPath()), destination);
         } else {
             die("Unsupported URL type: " + urlConnection);
         }
@@ -537,16 +551,16 @@ public class Utils {
         }
     }
 
-    public static String getGemsPath() {
-        String path = "";
+    private static String getGemsPath() {
+        StringBuilder path = new StringBuilder();
         try{
             Process p = new ProcessBuilder("rvm", "gemdir").start();
-            path = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
-            path = StringUtils.chop(path);
+            path.append(IOUtils.toString(p.getInputStream(), Charset.defaultCharset()));
+            path.deleteCharAt(path.length()-1);
             p.destroy();
         } catch (IOException ignoge) {
         }
-        return path;
+        return path.toString();
     }
 
 

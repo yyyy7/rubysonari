@@ -48,11 +48,11 @@ public class Parser {
     }
 
 
-    // start or restart ruby process
+    /**
+     * start or restart ruby process
+     */
     private void startRubyProcesses() {
-        if (rubyProcess != null) {
-            rubyProcess.destroy();
-        }
+        tryDestroyProcess();
 
         rubyProcess = startInterpreter(RUBY_EXE);
 
@@ -69,6 +69,7 @@ public class Parser {
             new File(endMark).delete();
             new File(parserLog).delete();
         }
+        tryDestroyProcess();
     }
 
 
@@ -660,8 +661,6 @@ public class Parser {
         if (node != null) {
             return node;
         } else {
-//            Utils.msg("failed to parse: " + filename);
-
             Analyzer.self.failedToParse.add(filename);
             return null;
         }
@@ -670,8 +669,6 @@ public class Parser {
 
     @Nullable
     public Node parseFileInner(String filename, @NotNull Process rubyProcess) {
-//        Utils.msg("parsing: " + filename);
-
         cleanTemp();
 
         String s1 = Utils.escapeWindowsPath(filename);
@@ -735,6 +732,15 @@ public class Parser {
     private void cleanTemp() {
         new File(exchangeFile).delete();
         new File(endMark).delete();
+    }
+
+    /**
+     * if ruby process exists, then destroy it
+     */
+    private void tryDestroyProcess() {
+        if (rubyProcess != null) {
+            rubyProcess.destroy();
+        }
     }
 
     private String getCurrentOS() {

@@ -99,7 +99,6 @@ public class Analyzer implements Serializable {
         options.put("quiet", true);
         Analyzer analyzer = new Analyzer(options);
         
-        /*
         Analyzer gemsCache = Analyzer.deserialize();
         if ( gemsCache == null) {
             analyzer.analyzeRails();
@@ -109,7 +108,6 @@ public class Analyzer implements Serializable {
             analyzer.semanticErrors = new HashMap<>();
             Analyzer.self = analyzer;
         }
-        */
         
         return analyzer;
     }
@@ -203,8 +201,7 @@ public class Analyzer implements Serializable {
 
     @NotNull
     public List<String> getLoadPath() {
-        List<String> loadPath = new ArrayList<>();
-        loadPath.addAll(path);
+        List<String> loadPath = new ArrayList<>(path);
         //loadPath.add("/Users/yinwang/.rvm/src/ruby-2.0.0-p247/lib");
         //if (!Utils.gemsPath.isEmpty()) loadPath.add(Utils.gemsPath);
 
@@ -454,12 +451,12 @@ public class Analyzer implements Serializable {
         String trial = Utils.makePathString(path, baseName + suffix);
         if (new File(trial).exists()) return loadFile(trial);
 
-        File file_or_dir = new File(path);
-        if (file_or_dir.listFiles() == null) return null;
+        File fileOrDir = new File(path);
+        if (fileOrDir.listFiles() == null) return null;
         //Arrays.stream(file_or_dir.listFiles())
         //      .filter(File::isDirectory)
         //      .forEach(file -> requireFileRecursive(file.getPath(), baseName));
-        for (File file : file_or_dir.listFiles()){
+        for (File file : fileOrDir.listFiles()){
             if (file.isDirectory()) {
                 Type t = requireFileRecursive(file.getPath(), baseName);
                 if (t != null) return t;
@@ -567,7 +564,7 @@ public class Analyzer implements Serializable {
     @NotNull
     public String getAnalysisSummary() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n" + Utils.banner("analysis summary"));
+        sb.append("\n").append(Utils.banner("analysis summary"));
 
         String duration = Utils.formatTime(System.currentTimeMillis() - stats.getInt("startTime"));
         sb.append("\n- total time: " + duration);

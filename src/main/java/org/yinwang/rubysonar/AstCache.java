@@ -100,7 +100,7 @@ public class AstCache {
             LOG.log(Level.FINE, "parsing " + path);
             node = parser.parseFile(path);
         } finally {
-            cache.put(path, node);  // may be null
+            cache.put(path, node);
         }
 
         if (node != null) {

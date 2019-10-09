@@ -32,7 +32,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
     Utils.msg(params.toString());
     workspaceRoot = params.getRootUri();
-    if (workspaceRoot == null || workspaceRoot == "") {
+    if (workspaceRoot == null || workspaceRoot.equals("")) {
       Utils.die("got null workspaceRoot");
     }
 
@@ -108,6 +108,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public void exit() {
+    analyzer.close();
   }
 
   @Override
