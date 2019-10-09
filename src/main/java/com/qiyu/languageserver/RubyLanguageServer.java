@@ -108,7 +108,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public void exit() {
-    analyzer.close();
   }
 
   @Override

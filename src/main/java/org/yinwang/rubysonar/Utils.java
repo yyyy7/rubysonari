@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import sun.net.www.protocol.file.FileURLConnection;
 //import sun.net.www.protocol.file.FileURLConnection;
 
 
@@ -200,8 +199,8 @@ public class Utils {
         URLConnection urlConnection = originUrl.openConnection();
         if (urlConnection instanceof JarURLConnection) {
             copyJarResourcesRecursively(destination, (JarURLConnection) urlConnection);
-        } else if (urlConnection instanceof FileURLConnection) {
-            FileUtils.copyDirectory(new File(originUrl.getPath()), destination);
+        //} else if (urlConnection instanceof FileURLConnection) {
+        //    FileUtils.copyDirectory(new File(originUrl.getPath()), destination);
         } else {
             die("Unsupported URL type: " + urlConnection);
         }
