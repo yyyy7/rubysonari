@@ -6,10 +6,8 @@ import org.yinwang.rubysonar.ast.Moduler;
 import org.yinwang.rubysonar.ast.Node;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.List;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,12 +20,14 @@ public class AstCache {
 
     private static final Logger LOG = Logger.getLogger(AstCache.class.getCanonicalName());
 
-    private static AstCache INSTANCE;
+    private static final AstCache INSTANCE = new AstCache();
 
     @NotNull
     private ConcurrentMap<String, Node> cache = new ConcurrentHashMap<>();
     @NotNull
     private static Parser parser;
+
+    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
 
 
     private AstCache() {
@@ -36,9 +36,9 @@ public class AstCache {
 
 
     public static AstCache get() {
-        if (INSTANCE == null) {
-            INSTANCE = new AstCache();
-        }
+        //if (INSTANCE == null) {
+        //    INSTANCE = new AstCache();
+        //}
         return INSTANCE;
     }
 
@@ -70,6 +70,20 @@ public class AstCache {
     public void close() {
         parser.close();
 //        clearDiskCache();
+    }
+
+    void prepareParse(List<File> files) {
+        for (File file : files) {
+            Parser p = new Parser(file);
+            executor.execute(p);
+        }
+
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Utils.testmsg(e.getMessage());
+        }
     }
 
 
@@ -131,7 +145,13 @@ public class AstCache {
         cache.remove(filename);
     }
 
-    // package-private for testing
+    public void put(String filename, Node node) {
+        cache.put(filename, node);
+    }
+
+    /**
+     * package-private for testing
+     */
     void serialize(@NotNull Node ast) {
         String path = getCachePath(Utils.getSHA(ast.file), new File(ast.file).getName());
         ObjectOutputStream oos = null;
@@ -155,7 +175,9 @@ public class AstCache {
     }
 
 
-    // package-private for testing
+    /**
+     * package-private for testing
+     */
     @Nullable
     Moduler getSerializedModuler(String sourcePath) {
         if (!new File(sourcePath).canRead()) {
@@ -169,7 +191,9 @@ public class AstCache {
     }
 
 
-    // package-private for testing
+    /**
+     * package-private for testing
+    */
     @Nullable
     Moduler deserialize(@NotNull String sourcePath) {
         String cachePath = getCachePath(sourcePath);

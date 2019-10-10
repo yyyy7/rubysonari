@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Parser {
+public class Parser implements Runnable {
 
     private static final String RUBY_EXE = "irb";
     private static final int TIMEOUT = 30000;
@@ -41,10 +41,29 @@ public class Parser {
         jsonizer = Utils.locateTmp("dump_ruby");
         parserLog = Utils.locateTmp("parser_log");
 
+        //startRubyProcesses();
+        //if (rubyProcess != null) {
+        //    Utils.msg("started: " + RUBY_EXE);
+        //}
+    }
+
+    public Parser(File f) {
+        this();
+        file = f.toString();
+    }
+
+    @Override
+    public void run() {
         startRubyProcesses();
         if (rubyProcess != null) {
-            Utils.msg("started: " + RUBY_EXE);
+            Utils.testmsg("started: " + RUBY_EXE);
         }
+        Utils.testmsg("parsing： " + file);
+        Node node = parseFile(file);
+        if (node != null) {
+            AstCache.get().put(file, node);
+        }
+        tryDestroyProcess();
     }
 
 
@@ -656,6 +675,9 @@ public class Parser {
 
     @Nullable
     public Node parseFile(String filename) {
+        if (rubyProcess == null) {
+            startRubyProcesses();
+        }
         file = filename;
         Node node = parseFileInner(filename, rubyProcess);
         if (node != null) {
@@ -735,7 +757,7 @@ public class Parser {
     }
 
     /**
-     * if ruby process exists, then destroy it
+     * if ru by process exists, then destroy it
      */
     private void tryDestroyProcess() {
         if (rubyProcess != null) {

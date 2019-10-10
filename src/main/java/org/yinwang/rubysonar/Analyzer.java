@@ -15,15 +15,12 @@ import org.yinwang.rubysonar.types.FunType;
 import org.yinwang.rubysonar.types.ModuleType;
 import org.yinwang.rubysonar.types.Type;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URL;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
+
 import com.google.common.base.CaseFormat;
 
 
@@ -98,7 +95,8 @@ public class Analyzer implements Serializable {
         Map<String, Object> options = new HashMap<>();
         options.put("quiet", true);
         Analyzer analyzer = new Analyzer(options);
-        
+
+        /*
         Analyzer gemsCache = Analyzer.deserialize();
         if ( gemsCache == null) {
             analyzer.analyzeRails();
@@ -108,6 +106,7 @@ public class Analyzer implements Serializable {
             analyzer.semanticErrors = new HashMap<>();
             Analyzer.self = analyzer;
         }
+         */
         
         return analyzer;
     }
@@ -138,16 +137,41 @@ public class Analyzer implements Serializable {
     }
 
 
-    // main entry to the analyzer
+    /**
+     * main entry to the analyzer
+     */
     public void analyze(String path) {
         String upath = Utils.unifyPath(path);
         File f = new File(upath);
         projectDir = f.isDirectory() ? f.getPath() : f.getParent();
+        startParallelParse();
         loadFileRecursive(upath);
     }
 
+    private List<File> allRubyFiles() {
+        // return new File(projectDir).listFiles((d, name) -> name.endsWith(".rb"));
+        try {
+            Path startDir = Paths.get(projectDir);
+            return Files.walk(startDir, FileVisitOption.FOLLOW_LINKS)
+                      .filter((p) -> p.toString().endsWith(".rb"))
+                      .map(Path::toFile)
+                      .collect(Collectors.toList());
+        } catch (IOException e) {
+            Utils.testmsg(e.getMessage());
+            System.exit(2);
+        }
+        return Collections.emptyList();
+    }
 
-    // main entry to the analyzer (for JSONDump only)
+    private void startParallelParse() {
+        Utils.testmsg("project size : " + allRubyFiles().size());
+        AstCache.get().prepareParse(allRubyFiles());
+    }
+
+
+    /**
+     * main entry to the analyzer (for JSONDump only)
+     */
     public void analyze(List<String> paths) {
         for (String path : paths) {
             loadFileRecursive(path);
@@ -453,7 +477,7 @@ public class Analyzer implements Serializable {
 
         File fileOrDir = new File(path);
         if (fileOrDir.listFiles() == null) return null;
-        //Arrays.stream(file_or_dir.listFiles())
+        //Arrays.stream(fileOrDir.listFiles())
         //      .filter(File::isDirectory)
         //      .forEach(file -> requireFileRecursive(file.getPath(), baseName));
         for (File file : fileOrDir.listFiles()){
@@ -478,31 +502,33 @@ public class Analyzer implements Serializable {
             loadingProgress = new Progress(count, 50);
         }
 
-        File file_or_dir = new File(fullname);
+        File fileOrDir = new File(fullname);
 
-        if (file_or_dir.isDirectory()) {
-            for (File file : file_or_dir.listFiles()) {
+        if (fileOrDir.isDirectory()) {
+            for (File file : fileOrDir.listFiles()) {
                 loadFileRecursive(file.getPath());
             }
         } else {
-            if (file_or_dir.getPath().endsWith(suffix)) {
-                loadFile(file_or_dir.getPath());
+            if (fileOrDir.getPath().endsWith(suffix)) {
+                loadFile(fileOrDir.getPath());
             }
         }
     }
 
 
-    // count number of files that need processing
+    /**
+     * count number of files that need processing
+     */
     public int countFileRecursive(String fullname) {
-        File file_or_dir = new File(fullname);
+        File fileOrDir = new File(fullname);
         int sum = 0;
 
-        if (file_or_dir.isDirectory()) {
-            for (File file : file_or_dir.listFiles()) {
+        if (fileOrDir.isDirectory()) {
+            for (File file : fileOrDir.listFiles()) {
                 sum += countFileRecursive(file.getPath());
             }
         } else {
-            if (file_or_dir.getPath().endsWith(suffix)) {
+            if (fileOrDir.getPath().endsWith(suffix)) {
                 sum += 1;
             }
         }
