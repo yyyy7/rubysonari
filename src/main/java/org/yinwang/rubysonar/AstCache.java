@@ -81,6 +81,7 @@ public class AstCache {
         executor.shutdown();
         try {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            Utils.testmsg("executor done...");
         } catch (InterruptedException e) {
             Utils.testmsg(e.getMessage());
         }
@@ -100,6 +101,8 @@ public class AstCache {
         if (cache.containsKey(path)) {
             return cache.get(path);
         }
+
+        Utils.testmsg("cache not found: " + path);
 
         // Might be cached on disk but not in memory.
         Node node = getSerializedModuler(path);

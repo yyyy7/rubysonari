@@ -171,6 +171,7 @@ public class Utils {
         try {
             return FileUtils.readFileToByteArray(new File(filename));
         } catch (Exception e) {
+            Utils.die(e.getMessage());
             return null;
         }
     }
@@ -525,6 +526,11 @@ public class Utils {
     public static String locateTmp(String file) {
         String tmpDir = getSystemTempDir();
         return makePathString(tmpDir, "rubysonar", file + "." + Analyzer.self.sid);
+    }
+
+    public static String locateTmp(String extension, String filename) {
+        String tmpDir = getSystemTempDir();
+        return makePathString(tmpDir, "rubysonar", filename + "." + extension);
     }
 
 

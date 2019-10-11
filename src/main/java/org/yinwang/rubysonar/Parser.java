@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +52,7 @@ public class Parser implements Runnable {
     public Parser(File f) {
         this();
         file = f.toString();
+        //exchangeFile = Utils.locateTmp("json", file);
     }
 
     @Override
@@ -58,10 +61,10 @@ public class Parser implements Runnable {
         if (rubyProcess != null) {
             Utils.testmsg("started: " + RUBY_EXE);
         }
-        Utils.testmsg("parsing： " + file);
         Node node = parseFile(file);
         if (node != null) {
             AstCache.get().put(file, node);
+            Utils.testmsg("parsed： " + file);
         }
         tryDestroyProcess();
     }
@@ -690,7 +693,7 @@ public class Parser implements Runnable {
 
 
     @Nullable
-    public Node parseFileInner(String filename, @NotNull Process rubyProcess) {
+    private Node parseFileInner(String filename, @NotNull Process rubyProcess) {
         cleanTemp();
 
         String s1 = Utils.escapeWindowsPath(filename);
@@ -705,8 +708,9 @@ public class Parser implements Runnable {
 
         long waitStart = System.currentTimeMillis();
         File marker = new File(endMark);
+        File ex = new File(exchangeFile);
 
-        while (!marker.exists()) {
+        while (!marker.exists() || !ex.exists()) {
             if (System.currentTimeMillis() - waitStart > TIMEOUT) {
                 Utils.msg("\nTimed out while parsing: " + filename);
                 cleanTemp();
@@ -718,6 +722,7 @@ public class Parser implements Runnable {
                 Thread.sleep(1);
             } catch (Exception e) {
                 cleanTemp();
+                Utils.die(e.getMessage());
                 return null;
             }
         }
@@ -725,8 +730,10 @@ public class Parser implements Runnable {
         String json;
         try {
             json = Utils.readFile(exchangeFile);
+            Utils.testmsg("json length : " + json.length());
         } catch (Exception e) {
             cleanTemp();
+            Utils.die(e.getMessage());
             return null;
         }
 
@@ -762,6 +769,7 @@ public class Parser implements Runnable {
     private void tryDestroyProcess() {
         if (rubyProcess != null) {
             rubyProcess.destroy();
+            Utils.testmsg("destroy irb");
         }
     }
 
