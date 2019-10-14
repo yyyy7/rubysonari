@@ -35,13 +35,14 @@ public class Parser implements Runnable {
     private String jsonizer;
     private String parserLog;
     private String file;
+    private String sid = Utils.newSessionId();
 
 
     public Parser() {
-        exchangeFile = Utils.locateTmp("json");
-        endMark = Utils.locateTmp("end");
-        jsonizer = Utils.locateTmp("dump_ruby");
-        parserLog = Utils.locateTmp("parser_log");
+        exchangeFile = Utils.locateTmp("json", sid);
+        endMark = Utils.locateTmp("end", sid);
+        jsonizer = Utils.locateTmp("dump_ruby", sid);
+        parserLog = Utils.locateTmp("parser_log", sid);
 
         //startRubyProcesses();
         //if (rubyProcess != null) {

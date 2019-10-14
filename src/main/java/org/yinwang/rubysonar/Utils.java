@@ -528,9 +528,9 @@ public class Utils {
         return makePathString(tmpDir, "rubysonar", file + "." + Analyzer.self.sid);
     }
 
-    public static String locateTmp(String extension, String filename) {
+    public static String locateTmp(String filename, String uuid) {
         String tmpDir = getSystemTempDir();
-        return makePathString(tmpDir, "rubysonar", filename + "." + extension);
+        return makePathString(tmpDir, "rubysonar", filename + "." + uuid);
     }
 
 
