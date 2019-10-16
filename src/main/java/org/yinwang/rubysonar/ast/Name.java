@@ -48,7 +48,9 @@ public class Name extends Node {
     @Override
     public Type transform(@NotNull State s) {
         List<Binding> b;
-        if (Analyzer.self.projectDir != Utils.gemsPath && this.file.startsWith(Analyzer.self.projectDir) && isConst()) Analyzer.self.autoLoadModule(this.id);
+        if (Analyzer.self.projectDir.equals(Utils.gemsPath) && this.file.startsWith(Analyzer.self.projectDir) && isConst()) {
+            Analyzer.self.autoLoadModule(this.id);
+        }
 
         if (Analyzer.self.staticContext) {
             b = s.lookupTagged(id, "class");

@@ -158,6 +158,7 @@ public class Binding implements Comparable<Object>, Serializable {
     /**
      * Bindings can be sorted by their location for outlining purposes.
      */
+    @Override
     public int compareTo(@NotNull Object o) {
         return start - ((Binding) o).start;
     }
