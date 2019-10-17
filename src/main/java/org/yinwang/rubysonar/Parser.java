@@ -15,35 +15,39 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class Parser implements Runnable {
 
-    private static final String RUBY_EXE = "irb";
     private static final int TIMEOUT = 30000;
+    private static final int QUEUE_SIZE = Runtime.getRuntime().availableProcessors() + 1;
 
-    @Nullable
-    Process rubyProcess;
     private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private static final String dumpRubyResource = "org/yinwang/rubysonar/ruby/dump_ruby.rb";
     private String exchangeFile;
     private String endMark;
     private String jsonizer;
     private String parserLog;
     private String file;
-    private String sid = Utils.newSessionId();
+    private RubySubProcess process;
+
+    private static BlockingQueue<RubySubProcess> rubySubProcessQueue = new LinkedBlockingQueue<>(QUEUE_SIZE);
+
+    static {
+        for (int i = 0; i < QUEUE_SIZE; i++) {
+            rubySubProcessQueue.offer(RubySubProcess.newInstance());
+        }
+    }
 
 
     public Parser() {
+        String sid = Utils.newSessionId();
         exchangeFile = Utils.locateTmp("json", sid);
         endMark = Utils.locateTmp("end", sid);
         jsonizer = Utils.locateTmp("dump_ruby", sid);
         parserLog = Utils.locateTmp("parser_log", sid);
-
         //startRubyProcesses();
         //if (rubyProcess != null) {
         //    Utils.msg("started: " + RUBY_EXE);
@@ -58,22 +62,27 @@ public class Parser implements Runnable {
 
     @Override
     public void run() {
-        startRubyProcesses();
-        if (rubyProcess != null) {
-            Utils.testmsg("started: " + RUBY_EXE);
+        RubySubProcess rubyP;
+        try {
+            rubyP = rubySubProcessQueue.take();
+        } catch (InterruptedException e) {
+            Utils.testmsg(e.getMessage());
+            return;
         }
-        Node node = parseFile(file);
+        // File f = rubyFiles.get();
+        Node node = parseFile(file, rubyP);
         if (node != null) {
             AstCache.get().put(file, node);
             Utils.testmsg("parsed： " + file);
         }
-        tryDestroyProcess();
+        rubySubProcessQueue.add(rubyP);
     }
 
 
     /**
      * start or restart ruby process
      */
+    /*
     private void startRubyProcesses() {
         tryDestroyProcess();
 
@@ -84,6 +93,8 @@ public class Parser implements Runnable {
         }
     }
 
+     */
+
 
     public void close() {
         if (!Analyzer.self.hasOption("debug")) {
@@ -92,7 +103,6 @@ public class Parser implements Runnable {
             new File(endMark).delete();
             new File(parserLog).delete();
         }
-        tryDestroyProcess();
     }
 
 
@@ -624,66 +634,9 @@ public class Parser implements Runnable {
 
 
     @Nullable
-    public Process startInterpreter(String interpExe) {
-        String jsonizeStr;
-        Process p;
-
-        try {
-            InputStream jsonize =
-                    Thread.currentThread()
-                            .getContextClassLoader()
-                            .getResourceAsStream(dumpRubyResource);
-            jsonizeStr = Utils.readWholeStream(jsonize);
-        } catch (Exception e) {
-            Utils.die("Failed to open resource file:" + dumpRubyResource);
-            return null;
-        }
-
-        try {
-            FileWriter fw = new FileWriter(jsonizer);
-            fw.write(jsonizeStr);
-            fw.close();
-        } catch (Exception e) {
-            Utils.die("Failed to write into: " + jsonizer);
-            return null;
-        }
-
-            ProcessBuilder builder = new ProcessBuilder();
-            if (getCurrentOS().contains("win")) {
-                builder.command("cmd.exe", "/c", interpExe);
-            } else {
-                builder.command(interpExe);
-            }
-
-            builder.redirectErrorStream(true);
-            builder.redirectError(new File(parserLog));
-            builder.redirectOutput(new File(parserLog));
-        try {
-            builder.environment().remove("RUBYLIB");
-            p = builder.start();
-        } catch (Exception e) {
-            Utils.msg(e.getMessage());
-            Utils.die("Failed to start irb");
-            return null;
-        }
-
-        if (!sendCommand("load '" + jsonizer + "'", p)) {
-            Utils.die("Failed to load jsonizer, please report bug");
-            p.destroy();
-            return null;
-        }
-
-        return p;
-    }
-
-
-    @Nullable
-    public Node parseFile(String filename) {
-        if (rubyProcess == null) {
-            startRubyProcesses();
-        }
+    public Node parseFile(String filename, RubySubProcess rubySubProcess) {
         file = filename;
-        Node node = parseFileInner(filename, rubyProcess);
+        Node node = parseFileInner(filename, rubySubProcess);
         if (node != null) {
             return node;
         } else {
@@ -692,9 +645,16 @@ public class Parser implements Runnable {
         }
     }
 
+    public Node parseFile(String filename) {
+        if (process == null) {
+            process = RubySubProcess.newInstance();
+        }
+        return parseFile(filename, process);
+    }
+
 
     @Nullable
-    private Node parseFileInner(String filename, @NotNull Process rubyProcess) {
+    private Node parseFileInner(String filename, @NotNull RubySubProcess rubySubProcess) {
         cleanTemp();
 
         String s1 = Utils.escapeWindowsPath(filename);
@@ -702,7 +662,7 @@ public class Parser implements Runnable {
         String s3 = Utils.escapeWindowsPath(endMark);
         String dumpCommand = "parse_dump('" + s1 + "', '" + s2 + "', '" + s3 + "')";
 
-        if (!sendCommand(dumpCommand, rubyProcess)) {
+        if (!rubySubProcess.sendCommand(dumpCommand)) {
             cleanTemp();
             return null;
         }
@@ -715,7 +675,6 @@ public class Parser implements Runnable {
             if (System.currentTimeMillis() - waitStart > TIMEOUT) {
                 Utils.msg("\nTimed out while parsing: " + filename);
                 cleanTemp();
-                startRubyProcesses();
                 return null;
             }
 
@@ -745,18 +704,7 @@ public class Parser implements Runnable {
     }
 
 
-    private boolean sendCommand(String cmd, @NotNull Process rubyProcess) {
-        try {
-            OutputStreamWriter writer = new OutputStreamWriter(rubyProcess.getOutputStream());
-            writer.write(cmd);
-            writer.write("\n");
-            writer.flush();
-            return true;
-        } catch (Exception e) {
-            Utils.msg("\nFailed to send command to Ruby interpreter: " + cmd);
-            return false;
-        }
-    }
+
 
 
     private void cleanTemp() {
@@ -764,9 +712,16 @@ public class Parser implements Runnable {
         new File(endMark).delete();
     }
 
+    static void destroyRubySubProcessQueue() {
+        while (!rubySubProcessQueue.isEmpty()) {
+            rubySubProcessQueue.remove().tryDestroyProcess();
+        }
+    }
+
     /**
      * if ru by process exists, then destroy it
      */
+    /*
     private void tryDestroyProcess() {
         if (rubyProcess != null) {
             rubyProcess.destroy();
@@ -774,14 +729,17 @@ public class Parser implements Runnable {
         }
     }
 
-    private String getCurrentOS() {
-        return System.getProperty("os.name").toLowerCase();
-    }
+     */
 
 
+
+
+    /*
     public static void main(String[] args) {
         Parser parser = new Parser();
         parser.parseFile(args[0]);
     }
+
+     */
 
 }

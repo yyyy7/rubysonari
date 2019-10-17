@@ -82,6 +82,7 @@ public class AstCache {
         try {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             Utils.testmsg("executor done...");
+            Parser.destroyRubySubProcessQueue();
         } catch (InterruptedException e) {
             Utils.testmsg(e.getMessage());
         }
