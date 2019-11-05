@@ -10,6 +10,7 @@ import org.yinwang.rubysonar.Binding;
 import org.yinwang.rubysonar.Utils;
 import org.yinwang.rubysonar.ast.Node;
 import org.yinwang.rubysonar.Analyzer;
+import org.yinwang.rubysonar.AstCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +41,7 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
     analyzer = Analyzer.newCachedInstance();
     analyzer.analyze(workspaceRoot.substring(7));
     analyzer.finish();
+    AstCache.get().clear();
     generateRefs();
 
     ServerCapabilities capabilities = new ServerCapabilities();

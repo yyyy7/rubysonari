@@ -27,9 +27,6 @@ public class AstCache {
     @NotNull
     private static Parser parser;
 
-    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-
-
     private AstCache() {
         parser = new Parser();
     }
@@ -72,21 +69,7 @@ public class AstCache {
 //        clearDiskCache();
     }
 
-    void prepareParse(List<File> files) {
-        for (File file : files) {
-            Parser p = new Parser(file);
-            executor.execute(p);
-        }
-
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            Utils.testmsg("executor done...");
-            Parser.destroyRubySubProcessQueue();
-        } catch (InterruptedException e) {
-            Utils.testmsg(e.getMessage());
-        }
-    }
+    
 
 
     /**

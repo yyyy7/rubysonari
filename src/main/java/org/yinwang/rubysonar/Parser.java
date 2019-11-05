@@ -17,13 +17,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 
 public class Parser implements Runnable {
 
     private static final int TIMEOUT = 30000;
-    private static final int QUEUE_SIZE = Runtime.getRuntime().availableProcessors() + 1;
+    private static final int QUEUE_SIZE = Runtime.getRuntime().availableProcessors() + 5;
 
     private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private String exchangeFile;
@@ -33,6 +36,7 @@ public class Parser implements Runnable {
     private String file;
     private RubySubProcess process;
 
+    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 5);
     private static BlockingQueue<RubySubProcess> rubySubProcessQueue = new LinkedBlockingQueue<>(QUEUE_SIZE);
 
     static {
@@ -76,6 +80,22 @@ public class Parser implements Runnable {
             Utils.testmsg("parsed： " + file);
         }
         rubySubProcessQueue.add(rubyP);
+    }
+
+    public static void prepareParse(List<File> files) {
+        for (File file : files) {
+            Parser p = new Parser(file);
+            executor.execute(p);
+        }
+
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            Utils.testmsg("executor done...");
+            Parser.destroyRubySubProcessQueue();
+        } catch (InterruptedException e) {
+            Utils.testmsg(e.getMessage());
+        }
     }
 
 

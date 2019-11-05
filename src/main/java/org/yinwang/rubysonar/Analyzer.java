@@ -165,7 +165,7 @@ public class Analyzer implements Serializable {
 
     private void startParallelParse() {
         Utils.testmsg("project size : " + allRubyFiles().size());
-        AstCache.get().prepareParse(allRubyFiles());
+        Parser.prepareParse(allRubyFiles());
     }
 
 
