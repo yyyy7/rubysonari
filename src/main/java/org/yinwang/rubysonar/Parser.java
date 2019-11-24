@@ -77,7 +77,6 @@ public class Parser implements Runnable {
         Node node = parseFile(file, rubyP);
         if (node != null) {
             AstCache.get().put(file, node);
-            Utils.testmsg("parsed： " + file);
         }
         rubySubProcessQueue.add(rubyP);
     }
@@ -91,7 +90,6 @@ public class Parser implements Runnable {
         executor.shutdown();
         try {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            Utils.testmsg("executor done...");
             Parser.destroyRubySubProcessQueue();
         } catch (InterruptedException e) {
             Utils.testmsg(e.getMessage());
@@ -710,7 +708,6 @@ public class Parser implements Runnable {
         String json;
         try {
             json = Utils.readFile(exchangeFile);
-            Utils.testmsg("json length : " + json.length());
         } catch (Exception e) {
             cleanTemp();
             Utils.die(e.getMessage());

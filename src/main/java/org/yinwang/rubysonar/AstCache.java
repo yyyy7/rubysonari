@@ -86,8 +86,6 @@ public class AstCache {
             return cache.get(path);
         }
 
-        Utils.testmsg("cache not found: " + path);
-
         // Might be cached on disk but not in memory.
         Node node = getSerializedModuler(path);
         if (node != null) {

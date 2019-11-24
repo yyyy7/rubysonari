@@ -73,8 +73,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
 
         if (file != null) {
           String positionKey = node.col + "-" + (node.col + node.end - node.start);
-          // Utils.msg("generate key: " + positionKey + " col: " + node.col + " end: " +
-          // node.end + " start: " + node.start);
 
           List<Map<String, Object>> dests = new ArrayList<>();
           for (Binding b : e.getValue()) {
@@ -94,10 +92,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
             lineRefs.put(positionKey, dests);
           }
 
-          // Map<String, Object> v = dests.get(0);
-          // Utils.msg(file + " " + node.line + "-" + dests.size() + " " + node.name + " : " +
-          // String.format("dest: %s %s %d %d ", v.get("name"), v.get("file"),
-          // v.get("line"), v.get("col")));
         }
       }
     }
@@ -125,13 +119,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
       int line = position.getPosition().getLine() + 1;
       int col = position.getPosition().getCharacter() + 1;
       String positionKey = uri;
-      /*
-       * for (Entry<String, List<Map<String, Object>>> e :
-       * RubyLanguageServer.positions.entrySet()) { Utils.msg("------Key: "+ e.getKey());
-       * Map<String, Object> value = e.getValue().get(0); Utils.msg("------Value: " +
-       * value.get("name") + " " + value.get("file") + " " + value.get("line") + " " +
-       * value.get("col")); }
-       */
       List<Map<String, Object>> dests = new ArrayList<>();
       Map<String, List<Map<String, Object>>> lineRefs = Optional.ofNullable(RubyLanguageServer.positions.get(uri))
           .map(h -> h.get(line)).orElse(Collections.emptyMap());
@@ -145,7 +132,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
           dests = r.getValue();
         }
       }
-      Utils.msg("======：" + position.toString());
       Range r;
       String targetFile = uri;
       List<Location> locations = new ArrayList<>();
@@ -153,7 +139,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
         r = new Range();
       } else {
         for (Map<String, Object> dest : dests) {
-          // Map<String, Object> dest = dests.get(0);
           targetFile = (String) dest.get("file");
           int targetLine = (int) dest.get("line") - 1;
           int targetCol = (int) dest.get("col") - 1;
@@ -161,8 +146,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
           locations.add(new Location("file://" + targetFile, r));
         }
       }
-      // Location l = new Location("file://" + targetFile, r);
-      // Utils.msg(l.toString());
       return CompletableFuture.completedFuture(locations);
     }
   };
@@ -201,8 +184,6 @@ class RubyLanguageServer implements LanguageServer, LanguageClientAware {
           analyzer.removeReferences(filename);
           analyzer.removeAstCache(filename);
           initPostions(filename);
-          // client.logMessage(new MessageParams(MessageType.Log, "We received an file
-          // change event" + f.getUri()));
           analyzer.loadFile(filename);
         }
         analyzer.applyUncalled();

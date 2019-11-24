@@ -94,12 +94,11 @@ public class RubySubProcess {
     }
 
     /**
-     * if ru by process exists, then destroy it
+     * if ruby process exists, then destroy it
      */
     void tryDestroyProcess() {
         if (rubyProcess != null) {
             rubyProcess.destroy();
-            Utils.testmsg("destroy irb");
         }
     }
 

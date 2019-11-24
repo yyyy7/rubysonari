@@ -164,7 +164,6 @@ public class Analyzer implements Serializable {
     }
 
     private void startParallelParse() {
-        Utils.testmsg("project size : " + allRubyFiles().size());
         Parser.prepareParse(allRubyFiles());
     }
 
@@ -388,7 +387,6 @@ public class Analyzer implements Serializable {
     @Nullable
     private Type parseAndResolve(String file) {
         try {
-            //Utils.msg("parsing " + file + ".............");
             Node ast = getAstForFile(file);
 
             if (ast == null) {
