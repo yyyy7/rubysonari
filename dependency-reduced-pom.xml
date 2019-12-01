@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.yinwang</groupId>
-  <artifactId>rubysonar</artifactId>
-  <name>rubysonar</name>
+  <artifactId>rubysonari</artifactId>
+  <name>rubysonari</name>
   <version>0.1-SNAPSHOT</version>
   <build>
     <finalName>${project.artifactId}-${project.version}</finalName>
@@ -12,8 +12,12 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.10</source>
+          <target>1.10</target>
+          <excludes>
+            <exclude>**/demos/*.java</exclude>
+            <exclude>**/Test.java</exclude>
+          </excludes>
         </configuration>
       </plugin>
       <plugin>
@@ -29,7 +33,7 @@
               <transformers>
                 <transformer />
                 <transformer>
-                  <mainClass>org.yinwang.rubysonar.demos.Demo</mainClass>
+                  <mainClass>com.qiyu.languageserver.App</mainClass>
                 </transformer>
               </transformers>
             </configuration>
@@ -51,12 +55,14 @@
     </plugins>
   </build>
   <properties>
-    <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-    <jackson-2-version>2.2.3</jackson-2-version>
-    <gson-version>2.2.4</gson-version>
-    <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <jackson-2-version>[2.9.9.2,)</jackson-2-version>
+    <maven.compiler.source>1.8</maven.compiler.source>
     <maven-shade-plugin.version>2.1</maven-shade-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+    <gson-version>2.2.4</gson-version>
+    <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
   </properties>
 </project>
 
